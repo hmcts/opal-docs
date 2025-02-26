@@ -1,0 +1,23 @@
+actor "Inputter" as user
+participant "Account Details" as account <<UI Page>> #lightskyblue
+participant "Court Details" as court <<UI Page>> #lightskyblue
+participant "Get Local Justice Areas" as ljas <<Fines API>> #lightgreen
+participant "Get Courts" as courts <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+user -> account ++ : Click <b>Court Details</b> link
+account -> court ++ : Navigate to 
+deactivate account
+court --> ljas ++
+ljas -> db ++ : Retrieve Local Justice Areas records (JPA)
+ljas <-- db -- : Local Justice Areas records
+court <-- ljas -- : Local Justice Areas (JSON)
+court -> court : Populate Local Justice Areas auto-complete
+court --> courts ++
+courts -> db ++ : Retrieve Courts records (JPA)
+courts <-- db -- : Courts records
+court <-- courts -- : Courts (JSON)
+court -> court : Populate Courts auto-complete
+user -> court : Enter Court details, and click <b>Return to account details</b>
+account <-- court ++ : Navigate back
+deactivate court

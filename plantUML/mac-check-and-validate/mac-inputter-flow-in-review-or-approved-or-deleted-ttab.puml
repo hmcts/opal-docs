@@ -1,0 +1,20 @@
+actor "Inputter" as user
+participant "Create and \nManage Accounts" as page <<UI Page>> #lightskyblue
+participant "Review Account" as review <<UI Page>> #lightskyblue
+participant "Get Draft Account" as account <<Fines API>> #lightgreen
+database "Fines DB" as db #lightgreen
+activate page
+user -> page : Click In Review (or Approved, or Deleted) tab
+page -> page : Display In Review (or Approved, or Deleted) tab
+user -> page : Select Draft Account
+page -> review ++ : Route to
+deactivate page
+review -> account ++ : Draft Account ID
+account -> db ++ : Query (JPA)
+account <-- db -- : Draft Account record
+review <<-- account -- : Draft Account (JSON)
+review -> review : Display Draft Account
+user -> review : Select back link
+page <- review -- : Route back
+activate page
+page -> page : Display In Review (or Approved, or Deleted) tab

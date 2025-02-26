@@ -1,0 +1,28 @@
+actor "Inputter" as user
+participant "Account Details" as account <<UI Page>> #lightskyblue
+participant "Review Offence" as revoff <<UI Page>> #lightskyblue
+participant "Remove Offence" as remoff <<UI Page>> #lightskyblue
+participant "Get Offences" as offences <<Fines API>> #lightgreen
+participant "Get Results" as results <<Fines API>> #lightgreen
+participant "Get Major Creditors" as majors <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+user -> account ++ : Click <b>Offence Details</b> link
+account -> revoff ++ : Navigate to 
+deactivate account
+revoff --> offences ++ : Offence Code
+offences -> db ++ : Retrieve Offence record (JPA)
+offences <-- db -- : Offence record
+revoff <-- offences -- : Offence (JSON)
+revoff --> results ++
+results -> db ++ : Retrieve Results records (JPA)
+results <-- db -- : Results records
+revoff <-- results -- : Results (JSON)
+revoff -> majors ++ : Major Creditor Code
+majors -> db ++ : Retrieve Major Creditors record (JPA)
+majors <-- db -- : Major Creditors record
+revoff <-- majors -- : Major Creditor (JSON)
+revoff -> revoff : Display Offences and Impositions
+user -> revoff : Click <b>Return to account</b>
+account <-- revoff ++ : Navigate back
+deactivate revoff

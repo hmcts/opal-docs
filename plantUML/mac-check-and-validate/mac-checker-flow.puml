@@ -1,0 +1,25 @@
+actor "Checker" as user
+participant "Check and \nValidate Accounts" as page <<UI Page>> #lightskyblue
+participant "Get Draft Accounts" as accounts <<Fines API>> #lightgreen
+database "Fines DB" as db #lightgreen
+user -> page ++ : Navigate to
+page ->> accounts ++ : Status = In Review
+accounts -> db ++ : Query (JPA)
+accounts <-- db -- : Draft Account records
+page <<-- accounts -- : Draft Accounts (JSON)
+page -> page : Display To Review tab
+page ->> accounts ++ : Status = Rejected
+accounts -> db ++ : Query (JPA)
+accounts <-- db -- : Draft Account records
+page <<-- accounts -- : Draft Accounts (JSON)
+page -> page : Enable Rejected tab
+page ->> accounts ++ : Status = Deleted
+accounts -> db ++ : Query (JPA)
+accounts <-- db -- : Draft Account records
+page <<-- accounts -- : Draft Accounts (JSON)
+page -> page : Enable Deleted tab
+page ->> accounts ++ : Status = Failed
+accounts -> db ++ : Query (JPA)
+accounts <-- db -- : Draft Account records
+page <<-- accounts -- : Draft Accounts (JSON)
+page -> page : Enable Failed tab

@@ -1,0 +1,19 @@
+actor "Inputter" as user
+participant "Create Account" as create <<UI Page>> #lightskyblue
+participant "Account Details" as account <<UI Page>> #lightskyblue
+participant "Get Business Units" as bus <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+user -> create ++ : Navigate to
+create -> bus ++
+bus -> db ++ : Retrieve Business Units (JPA)
+note right
+  Also retrieves the Configuration Items
+  for each Business Unit
+end note
+bus <-- db -- : Business Unit records
+create <-- bus -- : Business Units (JSON)
+create -> create : Populate Business Units auto-complete
+user -> create : Select Business Unit and Account Type, and click <b>Continue</b>
+create -> account ++ : Navigate to
+deactivate create

@@ -1,0 +1,40 @@
+actor "Inputter" as user
+participant "Account Details" as account <<UI Page>> #lightskyblue
+participant "Review Account" as review <<UI Page>> #lightskyblue
+participant "Get Local Justice Areas" as ljas <<Fines API>> #lightgreen
+participant "Get Courts" as courts <<Fines API>> #lightgreen
+participant "Get Offences" as offences <<Fines API>> #lightgreen
+participant "Get Results" as results <<Fines API>> #lightgreen
+participant "Get Major Creditors" as majors <<Fines API>> #lightgreen
+participant "Add Draft Account" as fines <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+user -> account : Click <b>Check acount</b>
+account -> review ++ : Navigate to 
+deactivate account
+review --> ljas ++
+ljas -> db ++ : Retrieve Local Justice Areas records (JPA)
+ljas <-- db -- : Local Justice Areas records
+review <-- ljas -- : Local Justice Areas (JSON)
+review --> courts ++
+courts -> db ++ : Retrieve Courts records (JPA)
+courts <-- db -- : Courts records
+review <-- courts -- : Courts (JSON)
+review --> results ++
+results -> db ++ : Retrieve Results records (JPA)
+results <-- db -- : Results records
+review <-- results -- : Results (JSON)
+review --> offences ++ : Offence Code
+offences -> db ++ : Retrieve Offence record (JPA)
+offences <-- db -- : Offence record
+review <-- offences -- : Offence (JSON)
+review --> majors ++
+majors -> db ++ : Retrieve Major Creditors records (JPA)
+majors <-- db -- : Major Creditors records
+review <-- majors -- : Major Creditors (JSON)
+review -> review : Display Account data
+user -> review : Click <b>Submit</b>
+review -> fines ++ : Draft Account (JSON)
+fines -> db ++ : Create Draft Account record (JPA)
+fines <-- db -- : Draft Account record
+review <-- fines -- : Draft Account (JSON)

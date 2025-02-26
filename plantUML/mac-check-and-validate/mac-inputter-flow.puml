@@ -1,0 +1,21 @@
+actor "Inputter" as user
+participant "Create and \nManage Accounts" as page <<UI Page>> #lightskyblue
+participant "Get Draft Accounts" as accounts <<Fines API>> #lightgreen
+participant "Get Draft Account" as account <<Fines API>> #lightgreen
+database "Fines DB" as db #lightgreen
+user -> page ++ : Navigate to
+page ->> accounts ++ : Status = In Review
+accounts -> db ++ : Query (JPA)
+accounts <-- db -- : Draft Account records
+page <<-- accounts -- : Draft Accounts (JSON)
+page -> page : Display In Review tab
+page ->> accounts ++ : Status = Rejected
+accounts -> db ++ : Query (JPA)
+accounts <-- db -- : Draft Account records
+page <<-- accounts -- : Draft Accounts (JSON)
+page -> page : Enable Rejected tab
+page ->> accounts ++ : Status = Approved
+accounts -> db ++ : Query (JPA)
+accounts <-- db -- : Draft Account records
+page <<-- accounts -- : Draft Accounts (JSON)
+page -> page : Enable Approved tab

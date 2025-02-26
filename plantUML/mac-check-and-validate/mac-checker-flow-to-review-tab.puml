@@ -1,0 +1,69 @@
+actor "Checker" as user
+participant "Check and \nValidate Accounts" as page <<UI Page>> #lightskyblue
+participant "Review Account" as review <<UI Page>> #lightskyblue
+participant "Delete Account" as delete <<UI Page>> #lightskyblue
+participant "Get Draft Account" as account <<Fines API>> #lightgreen
+participant "Update Draft Account" as update <<Fines API>> #lightgreen
+participant "Publish Account" as publish <<Fines Non-API>> #lightgreen
+database "Fines DB" as db #lightgreen
+database "Create Defendant Account" as sp <<Fines SP>> #lightgreen
+participant "Create Defendant Account" as gmas <<GMAS/DAC>> #yellow
+database "Create Defendant Account" as gobsp <<GOB SP>> #yellow
+activate page
+page -> page : Display To Review tab
+user -> page : Select Draft Account
+page -> review ++ : Route to
+deactivate page
+review -> account ++ : Draft Account ID
+account -> db ++ : Retrieve Draft Account record (JPA)
+account <-- db -- : Draft Account record
+review <<-- account -- : Draft Account (JSON)
+review -> review : Display Draft Account
+alt Approve Draft Account
+  user -> review : Click Approve
+  review -> review : Update Timeline Data
+  review -> update ++ : Status = Approved
+  update -> db ++ : Update Draft Account record (JPA)
+  note right : Status (Approved)
+  update <-- db -- : Updated Draft Account record
+  update -> publish ++ : Trigger (Synchronous)
+  alt Opal Mode
+    publish -> sp ++ : Draft Account ID
+    publish <-- sp --
+  else Legacy Mode
+    publish -> gmas ++ : Account JSON (XML Warapper)
+    gmas -> gmas : Transform Account JSON to Account XML
+    gmas -> gobsp ++ : Account XML
+    gmas <-- gobsp -- : Account Number
+    publish <-- gmas -- : Account Number
+  end
+  update <-- publish -- : Account Number
+  update -> db ++ : Update Draft Account record (JPA)
+  note right : Status (Published), Account Number 
+  update <-- db -- : Updated Draft Account record
+  review <- update --
+  page <- review -- : Route back
+else Reject Draft Account
+  user -> review ++ : Enter Reason and Click Reject
+  review -> review : Update Timeline Data
+  review -> update ++ : Status = Rejected
+  update -> db ++ : Update Draft Account (JPA)
+  update <-- db --
+  review <-- update --
+  page <- review -- : Route back
+else Delete Draft Account
+  user -> review ++ : Click Delete
+  review -> delete -- : Route to
+  activate delete
+  user -> delete : Enter Reason and Click Delete
+  review <- delete ++ : Route back
+  deactivate delete
+  review -> review : Update Timeline Data
+  review -> update ++ : Status = Deleted
+  update -> db ++ : Update Draft Account (JPA)
+  update <-- db --
+  review <-- update --
+  page <- review -- : Route back
+end
+activate page
+page -> page : Display To Review tab

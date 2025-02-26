@@ -1,0 +1,36 @@
+actor "Inputter" as user
+participant "Create and \nManage Accounts" as page <<UI Page>> #lightskyblue
+participant "Account Details" as details <<UI Page>> #lightskyblue
+participant "Court Details" as court <<UI Page>> #lightskyblue
+participant "Review Account" as review <<UI Page>> #lightskyblue
+participant "Get Draft Account" as account <<Fines API>> #lightgreen
+participant "Replace Draft Account" as replace <<Fines API>> #lightgreen
+database "Fines DB" as db #lightgreen
+activate page
+user -> page : Click Rejected tab
+page -> page : Display Rejected tab
+user -> page : Select Draft Account
+page -> details ++ : Route to
+deactivate page
+details -> account ++ : Draft Account ID
+account -> db ++ : Retrieve Draft Account record (JPA)
+account <-- db -- : Draft Account record
+details <<-- account -- : Draft Account (JSON)
+details -> details : Display Draft Account
+user -> details : Select Court Details link (for example)
+details -> court ++ : Route to
+deactivate details
+user -> court : Update Court Details and click on Return to account details button
+details <- court ++ : Route back
+deactivate court
+user -> details : Click Check Account button
+details -> review ++ : Route to
+deactivate details
+user -> review : Select Submit for review
+review -> replace ++ : Draft Account ID
+replace -> db ++ : Update Draft Account record (JPA)
+replace <- db -- : Updated Draft Account record
+review <- replace -- : Draft Account (JSON)
+page <- review -- : Route back
+activate page
+page -> page : Display In Review tab
