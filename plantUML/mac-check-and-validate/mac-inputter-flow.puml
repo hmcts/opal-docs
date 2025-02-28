@@ -1,3 +1,4 @@
+@startuml
 actor "Inputter" as user
 participant "Create and \nManage Accounts" as page <<UI Page>> #lightskyblue
 participant "Get Draft Accounts" as accounts <<Fines API>> #lightgreen
@@ -19,3 +20,4 @@ accounts -> db ++ : Query (JPA)
 accounts <-- db -- : Draft Account records
 page <<-- accounts -- : Draft Accounts (JSON)
 page -> page : Enable Approved tab
+@enduml

@@ -1,3 +1,4 @@
+@startuml
 actor "FAE User" as user
 participant "Defendant Account" as page <<UI Page>> #lightskyblue
 participant "Get Defendant Account\nHeader" as headapi <<Fines API>> #lightgreen
@@ -15,3 +16,4 @@ enfapi -> enfdb : Defendant Account ID
 enfapi <-- enfdb : Defendant Account Enforcement Status
 page <-- enfapi : Defendant Account Enforcement Status (JSON)
 page -> page : Display Enforcement tab
+@enduml

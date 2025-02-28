@@ -1,3 +1,4 @@
+@startuml
 actor "Inputter" as user
 participant "Create and \nManage Accounts" as page <<UI Page>> #lightskyblue
 participant "Account Details" as details <<UI Page>> #lightskyblue
@@ -34,3 +35,4 @@ review <- replace -- : Draft Account (JSON)
 page <- review -- : Route back
 activate page
 page -> page : Display In Review tab
+@enduml

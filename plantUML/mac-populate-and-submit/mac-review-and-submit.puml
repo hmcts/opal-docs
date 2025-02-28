@@ -1,3 +1,4 @@
+@startuml
 actor "Inputter" as user
 participant "Account Details" as account <<UI Page>> #lightskyblue
 participant "Review Account" as review <<UI Page>> #lightskyblue
@@ -38,3 +39,4 @@ review -> fines ++ : Draft Account (JSON)
 fines -> db ++ : Create Draft Account record (JPA)
 fines <-- db -- : Draft Account record
 review <-- fines -- : Draft Account (JSON)
+@enduml

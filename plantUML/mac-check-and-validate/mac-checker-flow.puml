@@ -1,3 +1,4 @@
+@startuml
 actor "Checker" as user
 participant "Check and \nValidate Accounts" as page <<UI Page>> #lightskyblue
 participant "Get Draft Accounts" as accounts <<Fines API>> #lightgreen
@@ -23,3 +24,4 @@ accounts -> db ++ : Query (JPA)
 accounts <-- db -- : Draft Account records
 page <<-- accounts -- : Draft Accounts (JSON)
 page -> page : Enable Failed tab
+@enduml

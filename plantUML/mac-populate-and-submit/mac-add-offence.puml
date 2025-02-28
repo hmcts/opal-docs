@@ -1,3 +1,4 @@
+@startuml
 actor "Inputter" as user
 participant "Account Details" as account <<UI Page>> #lightskyblue
 participant "Add Offence" as addoff <<UI Page>> #lightskyblue
@@ -32,3 +33,4 @@ deactivate addoff
 user -> revoff : Click <b>Return to account</b>
 revoff -> account ++ : Navigate to
 deactivate revoff
+@enduml

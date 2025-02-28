@@ -1,3 +1,4 @@
+@startuml
 actor "Inputter" as user
 participant "Create and \nManage Accounts" as page <<UI Page>> #lightskyblue
 participant "Review Account" as review <<UI Page>> #lightskyblue
@@ -18,3 +19,4 @@ user -> review : Select back link
 page <- review -- : Route back
 activate page
 page -> page : Display In Review (or Approved, or Deleted) tab
+@enduml

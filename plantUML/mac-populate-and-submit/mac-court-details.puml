@@ -1,3 +1,4 @@
+@startuml
 actor "Inputter" as user
 participant "Account Details" as account <<UI Page>> #lightskyblue
 participant "Court Details" as court <<UI Page>> #lightskyblue
@@ -21,3 +22,4 @@ court -> court : Populate Courts auto-complete
 user -> court : Enter Court details, and click <b>Return to account details</b>
 account <-- court ++ : Navigate back
 deactivate court
+@enduml

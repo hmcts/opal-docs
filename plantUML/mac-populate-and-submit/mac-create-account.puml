@@ -1,3 +1,4 @@
+@startuml
 actor "Inputter" as user
 participant "Create Account" as create <<UI Page>> #lightskyblue
 participant "Account Details" as account <<UI Page>> #lightskyblue
@@ -17,3 +18,4 @@ create -> create : Populate Business Units auto-complete
 user -> create : Select Business Unit and Account Type, and click <b>Continue</b>
 create -> account ++ : Navigate to
 deactivate create
+@enduml

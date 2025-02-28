@@ -1,3 +1,4 @@
+@startuml
 actor "FAE User" as user
 participant "Defendant Account\n(Enforcement tab)" as page <<UI Page>> #lightskyblue
 participant "Add Enforcement Action" as enfpage <<UI Page>> #lightskyblue
@@ -15,3 +16,4 @@ enfpage -> enfpage : Display list of Next Enforcement Actions
 user -> enfpage : Select <b>Next Enforcement Action</b> from the list
 enfpage -> respage : route to
 user -> respage : Enter Responses
+@enduml

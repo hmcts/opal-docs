@@ -1,3 +1,4 @@
+@startuml
 actor "Inputter" as user
 participant "Account Details" as account <<UI Page>> #lightskyblue
 participant "Review Offence" as revoff <<UI Page>> #lightskyblue
@@ -26,3 +27,4 @@ revoff -> revoff : Display Offences and Impositions
 user -> revoff : Click <b>Return to account</b>
 account <-- revoff ++ : Navigate back
 deactivate revoff
+@enduml
