@@ -1,0 +1,40 @@
+@startuml
+
+actor "Inputter" as user
+participant "Fixed Penalty Details" as fixedPenaltyDetails <<UI Page>> #lightskyblue
+participant "Search Offences" as searchOffences <<UI Page>> #lightskyblue
+participant "Search Results" as searchResults <<UI Page>> #lightskyblue
+participant "Get Offences" as getOffences <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+user -> fixedPenaltyDetails++ : Clicks <b>'Search Offence List'</b> link
+fixedPenaltyDetails-> searchOffences++: Navigates to
+deactivate fpd
+
+user -> searchOffences: Inputs search criteria & clicks <b>'Search'</b>
+searchOffences--> getOffences : Calls Get Offences API
+deactivate so
+
+getOffences -> db : Retrieve offences (JPA)
+
+db --> getOffences : Return offences search results
+
+getOffences --> searchResults++ : Return offences search results (JSON)
+
+alt No results found
+    searchResults-> searchResults: Display 'No Matching Results' screen
+    searchResults-> searchOffences++: Click <b>'Back'</b> link to search again
+    searchOffences--
+else Over maximum results found
+    searchResults-> searchResults: Display 'Refine your search' screen
+        searchResults-> searchOffences++: Click <b>'Back'</b> link to search again
+        searchOffences--
+else Results found
+    searchResults-> searchResults: Display search results
+    user -> searchResults: Clicks <b>'Copy Code'</b> link
+    searchResults--
+end
+    user -> fixedPenaltyDetails++: Navigates back to Fixed Penalty Details
+
+
+@enduml

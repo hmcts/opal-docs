@@ -1,0 +1,25 @@
+@startuml
+actor "Inputter" as user
+participant "Fixed Penalty Details" as fixedPenaltyDetails <<UI Page>> #lightskyblue
+participant "Get Prosecutors" as prosecutors <<Fines API>> #lightgreen
+participant "Get Local Justice Areas" as ljas <<Fines API>> #lightgreen
+participant "Get Courts" as courts <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+user -> fixedPenaltyDetails ++ : Navigate to
+fixedPenaltyDetails --> prosecutors ++
+prosecutors -> db ++ : Retrieve Prosecutors records (JPA)
+prosecutors <-- db -- : Prosecutors records
+fixedPenaltyDetails <-- prosecutors -- : Prosecutors (JSON)
+fixedPenaltyDetails --> ljas ++
+ljas -> db ++ : Retrieve Local Justice Areas records (JPA)
+ljas <-- db -- : Local Justice Areas records
+fixedPenaltyDetails <-- ljas -- : Local Justice Areas (JSON)
+fixedPenaltyDetails -> fixedPenaltyDetails : Populate Issuing Authority auto-complete
+fixedPenaltyDetails --> courts ++
+courts -> db ++ : Retrieve Courts records (JPA)
+courts <-- db -- : Courts records
+fixedPenaltyDetails <-- courts -- : Courts (JSON)
+fixedPenaltyDetails -> fixedPenaltyDetails : Populate Enforcement Court auto-complete
+
+@enduml

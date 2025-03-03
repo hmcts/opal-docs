@@ -1,0 +1,50 @@
+@startuml
+actor "Inputter" as user
+participant "Create Account" as createAccount <<UI Page>> #lightskyblue
+participant "Fixed Penalty Details" as fixedPenaltyDetails<<UI Page>> #lightskyblue
+participant "Check Account Details" as checkAccountDetails <<UI Page>> #lightskyblue
+participant "Confirmation" as confirmation <<UI Page>> #lightskyblue
+participant "Delete Account" as delete <<UI Page>> #lightskyblue
+participant "Review Accounts" as reviewAccount<<UI Page>> #lightskyblue
+participant "Post Draft Account" as postDraftAccount<<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+user -> fixedPenaltyDetails++ : Click 'Review Account' button
+fixedPenaltyDetails--> checkAccountDetails ++ : Navigates to Check Account Details
+fixedPenaltyDetails--
+alt Change account details
+user -> checkAccountDetails : Click 'Change' link
+checkAccountDetails -> fixedPenaltyDetails++ : Navigates to Fixed Penalty Details to change account details
+fixedPenaltyDetails--
+else Delete account
+user -> checkAccountDetails : Click 'Delete account' link
+checkAccountDetails -> delete ++ : Navigates to Delete Account confirmation
+alt Confirm delete
+user -> delete : Click 'Yes - delete' button
+delete -> createAccount ++ : Navigates to Create Account
+createAccount --
+else Cancel delete
+user -> delete : Click 'No - cancel' button
+delete -> checkAccountDetails : Navigates back to Check Account Details
+delete --
+end
+else Submit account
+user -> checkAccountDetails : Click 'Submit for Review' button
+checkAccountDetails --> postDraftAccount: Calls Post Draft Account API
+postDraftAccount-> db : Save account details (JPA)
+db --> postDraftAccount: Return account details
+postDraftAccount--> checkAccountDetails : Return create draft account response (JSON)
+checkAccountDetails -> confirmation ++ : Navigates to Confirmation
+checkAccountDetails --
+alt Create new account
+user -> confirmation : Click 'Create new account' link
+confirmation -> createAccount ++ : Navigates to Create Account
+createAccount --
+else Review accounts
+user -> confirmation : Click 'See all accounts in review' link
+confirmation -> reviewAccount++: Navigates to Create Accounts review tab
+reviewAccount--
+confirmation --
+end
+end
+@enduml
