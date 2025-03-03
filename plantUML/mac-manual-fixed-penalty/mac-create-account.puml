@@ -5,8 +5,8 @@ participant "Fixed Penalty Details" as fixedPenaltyDetails <<UI Page>> #lightsky
 participant "Get Business Units" as businessUnits <<Fines API>> #lightgreen
 database "Fines Database" as db #lightgreen
 
-user -> createAccounts ++ : Navigate to
-createAccounts -> businessUnits++
+user -> createAccounts ++ : Navigate to Create Account
+createAccounts --> businessUnits++ : Get Business Units
 businessUnits -> db ++ : Retrieve Business Units (JPA)
 note right
   Also retrieves the Configuration Items
