@@ -1,9 +1,13 @@
 @startuml
 actor "Inputter" as user
 participant "Fixed Penalty Details" as fixedPenaltyDetails <<UI Page>> #lightskyblue
+participant "Search Offences" as searchOffences <<UI Page>> #lightskyblue
 participant "Get Prosecutors" as prosecutors <<Fines API>> #lightgreen
 participant "Get Local Justice Areas" as ljas <<Fines API>> #lightgreen
 participant "Get Courts" as courts <<Fines API>> #lightgreen
+participant "Get Results" as results <<Fines API>> #lightgreen
+participant "Get Major Creditors" as majorCreditors <<Fines API>> #lightgreen
+participant "Get Offences" as offence <<Fines API>> #lightgreen
 database "Fines Database" as db #lightgreen
 
 user -> fixedPenaltyDetails ++ : Navigate to Fixed Penalty Details
@@ -21,5 +25,24 @@ courts -> db ++ : Retrieve Courts records (JPA)
 courts <-- db -- : Courts records
 fixedPenaltyDetails <-- courts -- : Courts (JSON)
 fixedPenaltyDetails -> fixedPenaltyDetails : Populate Enforcement Court auto-complete
+fixedPenaltyDetails --> results ++ : Get Results
+results -> db ++ : Retrieve Results records (JPA)
+results <-- db -- : Results records
+fixedPenaltyDetails <-- results -- : Results (JSON)
+fixedPenaltyDetails --> majorCreditors ++ : Get Major Creditors
+majorCreditors -> db ++ : Retrieve Major Creditors records (JPA)
+majorCreditors <-- db -- : Major Creditors records
+fixedPenaltyDetails <-- majorCreditors -- : Major Creditors (JSON)
+opt Search offence codes
+user -> fixedPenaltyDetails : Click 'Search the offence list' link
+fixedPenaltyDetails -> searchOffences ++ : Navigate to Search Offences to search for offence code
+fixedPenaltyDetails <- searchOffences -- : Return to Fixed Penalty Details
+end
+user -> fixedPenaltyDetails : Enter offence code
+fixedPenaltyDetails --> offence ++ : Get Offences data
+offence -> db ++ : Retrieve Offence record (JPA)
+offence <-- db -- : Offences record
+fixedPenaltyDetails <-- offence -- : Offence (JSON)
+fixedPenaltyDetails -> fixedPenaltyDetails : Display offence title
 
 @enduml
