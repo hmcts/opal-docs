@@ -1,0 +1,18 @@
+@startuml
+
+actor "Inputter" as user
+participant "Fixed Penalty Details" as fixedPenaltyDetails <<UI Page>> #lightskyblue
+participant "Language Preference" as languagePreferences <<UI Page>> #lightskyblue
+
+user -> fixedPenaltyDetails ++ : Navigate to Fixed Penalty Details (Welsh Business Unit selected)
+
+
+user -> fixedPenaltyDetails : Clicks 'Change' link for Document Language OR Court Hearing Language
+fixedPenaltyDetails -> languagePreferences ++: Navigates to Language Preference
+fixedPenaltyDetails --
+user -> languagePreferences : Selects language preference (Welsh / English & Welsh) for Documents and Court Hearings
+user -> languagePreferences : Clicks 'Save Changes'
+
+languagePreferences -> fixedPenaltyDetails ++: Navigates back to Fixed Penalty Details
+
+@enduml
