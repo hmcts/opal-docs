@@ -1,0 +1,21 @@
+@startuml
+actor "Inputter" as user
+participant "Create Account" as createAccounts <<UI Page>> #lightskyblue
+participant "Fixed Penalty Details" as fixedPenaltyDetails <<UI Page>> #lightskyblue
+participant "Get Business Units" as businessUnits <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+user -> createAccounts ++ : Navigate to Create Account
+createAccounts --> businessUnits++ : Get Business Units
+businessUnits -> db ++ : Retrieve Business Units (JPA)
+note right
+  Also retrieves the Configuration Items
+  for each Business Unit
+end note
+businessUnits <-- db -- : Business Unit records
+createAccounts <-- businessUnits-- : Business Units (JSON)
+createAccounts -> createAccounts : Populate Business Units auto-complete
+user -> createAccounts : Select Business Unit, Fixed Penalty, Defendant Type and click <b>Continue</b>
+createAccounts -> fixedPenaltyDetails ++ : Navigate to Fixed Penalty Details
+deactivate createAccounts
+@enduml
