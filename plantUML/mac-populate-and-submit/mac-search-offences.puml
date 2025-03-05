@@ -33,8 +33,7 @@ else Results found
     searchResults-> searchResults: Display search results
     user -> searchResults: Clicks <b>'Copy Code'</b> link
     searchResults--
-end
     searchResults -> addOffence++: Navigates back
-
-
+    addOffence --
+end
 @enduml
