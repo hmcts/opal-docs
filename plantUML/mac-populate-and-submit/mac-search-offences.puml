@@ -1,26 +1,26 @@
 @startuml
 
 actor "Inputter" as user
-participant "Fixed Penalty Details" as fixedPenaltyDetails <<UI Page>> #lightskyblue
+participant "Add an Offence" as addOffence <<UI Page>> #lightskyblue
 participant "Search Offences" as searchOffences <<UI Page>> #lightskyblue
 participant "Search Results" as searchResults <<UI Page>> #lightskyblue
 participant "Search Offences" as getOffences <<Fines API>> #lightgreen
 database "Fines Database" as db #lightgreen
 
-user -> fixedPenaltyDetails++ : Clicks <b>'Search Offence List'</b> link
-fixedPenaltyDetails-> searchOffences++: Navigates to
-deactivate fixedPenaltyDetails
+user -> addOffence++ : Clicks <b>'Search Offence List'</b> link
+addOffence-> searchOffences++: Navigates to
+deactivate addOffence
 
 user -> searchOffences: Inputs search criteria & clicks <b>'Search'</b>
-searchOffences--> getOffences : Calls Search Offences API
+searchOffences--> getOffences ++ : Calls Search Offences API
 deactivate searchOffences
 
-getOffences -> db : Retrieve offences (JPA)
+getOffences -> db ++: Retrieve offences (JPA)
 
 db --> getOffences : Return offences search results
-
+deactivate db
 getOffences --> searchResults++ : Return offences search results (JSON)
-
+deactivate getOffences
 alt No results found
     searchResults-> searchResults: Display 'No Matching Results' screen
     searchResults-> searchOffences++: Click <b>'Back'</b> link to search again
@@ -34,7 +34,7 @@ else Results found
     user -> searchResults: Clicks <b>'Copy Code'</b> link
     searchResults--
 end
-    user -> fixedPenaltyDetails++: Navigates back to Fixed Penalty Details
+    searchResults -> addOffence++: Navigates back
 
 
 @enduml
