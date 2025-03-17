@@ -1,0 +1,30 @@
+@startuml
+actor User
+participant "Defendant Tab" as viewScreen <<UI Page>> #lightskyblue
+participant "Defendant Details Screen" as changeScreen <<UI Page>> #lightskyblue
+participant "GET API - Get Defendant Account Party" as getapi <<Fines API>> #lightgreen
+participant "PUT API - Replace Defendant Account Party" as putapi <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+User -> viewScreen ++ : Navigates to tab
+viewScreen --> getapi ++ : Get data
+getapi --> db ++ : Select data (JPA)
+db --> getapi : Return data
+db --
+getapi --> viewScreen : Return data (JSON)
+viewScreen -> viewScreen : Display data
+getapi --
+User -> viewScreen : Clicks 'Change' link
+viewScreen -> changeScreen ++: Navigate to Change screen
+viewScreen --
+User -> changeScreen : Makes changes
+User -> changeScreen : Clicks 'Save changes' button
+changeScreen --> putapi ++ : Put data
+changeScreen --
+putapi --> db ++ : Update data (JPA)
+db --> putapi : Return data
+db --
+putapi --> viewScreen ++ : Return updated record (JSON)
+viewScreen --
+putapi --
+@enduml
