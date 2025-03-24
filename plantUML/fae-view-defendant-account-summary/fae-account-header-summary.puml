@@ -9,15 +9,18 @@ user ->  viewAccount ++ :Navigates to
 viewAccount --> getHeaderApi ++: Get header data
 getHeaderApi --> db ++ : Get header data (JPA)
 db --> getHeaderApi : Return header data
+deactivate db
 getHeaderApi --> viewAccount : Return header data (JSON)
 deactivate getHeaderApi
 viewAccount -> viewAccount : Display header
 viewAccount --> getAAGApi ++: Get At a Glance data
-getAAGApi --> db : Get At a Glance data (JPA)
+getAAGApi --> db ++ : Get At a Glance data (JPA)
 db --> getAAGApi : Return At a Glance data
+deactivate db
 getAAGApi --> viewAccount : Return At a Glance data (JSON)
 deactivate getAAGApi
 viewAccount -> viewAccount : Display At a Glance tab
+
 
 
 @enduml
