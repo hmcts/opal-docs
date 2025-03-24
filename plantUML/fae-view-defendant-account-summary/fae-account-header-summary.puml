@@ -5,8 +5,6 @@ participant "Comments" as comments <<UI Page>> #lightskyblue
 participant "Add account note" as addNote <<UI Page>> #lightskyblue
 participant "Get Defendant Account \nHeader Summary" as getHeaderApi <<Fines API>> #lightgreen
 participant "Get Defendant Account \nAt A Glance" as getAAGApi <<Fines API>> #lightgreen
-participant "Update Defendant Account" as updateAccountApi <<Fines API>> #lightgreen
-participant "Add Note" as addNoteApi <<Fines API>> #lightgreen
 database "Fines DB" as db #lightgreen
 
 user ->  viewAccount ++ :Navigates to
@@ -20,8 +18,6 @@ getAAGApi --> db : Get At a Glance data (JPA)
 db --> getAAGApi : Return At a Glance data
 getAAGApi --> viewAccount : Return At a Glance data (JSON)
 viewAccount -> viewAccount : Display At a Glance tab
-
-
 
 
 @enduml
