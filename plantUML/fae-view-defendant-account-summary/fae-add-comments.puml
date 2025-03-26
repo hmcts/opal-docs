@@ -1,7 +1,7 @@
 @startuml
 actor "User" as user
 participant "View account \n(at a glance)" as viewAccount <<UI Page>> #lightskyblue
-participant "Comments" as comments <<UI Page>> #lightskyblue
+participant "Add Comments" as comments <<UI Page>> #lightskyblue
 participant "Update Defendant Account" as updateAccountApi <<Fines API>> #lightgreen
 database "Fines DB" as db #lightgreen
 
