@@ -1,19 +1,12 @@
 @startuml
 actor "FAE User" as user
-participant "Defendant Account" as page <<UI Page>> #lightskyblue
-participant "Get Defendant Account\nHeader" as headapi <<Fines API>> #lightgreen
-database "Get Defendant Account\nHeader" as headdb <<Fines SP>>  #lightgreen
+participant "View Account \n(Enforcement tab)" as page <<UI Page>> #lightskyblue
 participant "Get Defendant Account\nEnforcement Status" as enfapi <<Fines API>> #lightgreen
-database "Get Defendant Account\nEnforcement Status" as enfdb <<Fines SP>>  #lightgreen
-autoactivate on
-user -> page : Select Enforcement tab
-page ->> headapi : Defendant Account ID
-headapi -> headdb : Defendant Account ID
-headapi <-- headdb : Defendant Account Header
-page <-- headapi : Defendant Account Header(JSON)
-page ->> enfapi
-enfapi -> enfdb : Defendant Account ID
-enfapi <-- enfdb : Defendant Account Enforcement Status
-page <-- enfapi : Defendant Account Enforcement Status (JSON)
+database "Get Defendant Account\nEnforcement Status" as enfdb <<Fines DB>>  #lightgreen
+user -> page ++: Select Enforcement tab
+page ->> enfapi ++
+enfapi -> enfdb ++ : Defendant Account ID (JPA with DB view)
+enfapi <-- enfdb --: Defendant Account Enforcement Status
+page <-- enfapi -- : Defendant Account Enforcement Status (JSON)
 page -> page : Display Enforcement tab
 @enduml
