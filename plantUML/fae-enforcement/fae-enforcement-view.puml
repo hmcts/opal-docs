@@ -2,7 +2,7 @@
 actor "FAE User" as user
 participant "View Account \n(Enforcement tab)" as page <<UI Page>> #lightskyblue
 participant "Get Defendant Account\nEnforcement Status" as enfapi <<Fines API>> #lightgreen
-database "Get Defendant Account\nEnforcement Status" as enfdb <<Fines DB>>  #lightgreen
+database "Enforcement Status View" as enfdb <<Fines DB>>  #lightgreen
 user -> page ++: Select Enforcement tab
 page ->> enfapi ++
 enfapi -> enfdb ++ : Defendant Account ID (JPA with DB view)
