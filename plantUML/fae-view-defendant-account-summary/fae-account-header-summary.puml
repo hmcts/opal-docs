@@ -1,0 +1,26 @@
+@startuml
+actor "User" as user
+participant "View account" as viewAccount <<UI Page>> #lightskyblue
+participant "Get Defendant Account \nHeader Summary" as getHeaderApi <<Fines API>> #lightgreen
+participant "Get Defendant Account \nAt A Glance" as getAAGApi <<Fines API>> #lightgreen
+database "Fines DB" as db #lightgreen
+
+user ->  viewAccount ++ :Navigates to
+viewAccount --> getHeaderApi ++: Get header data
+getHeaderApi --> db ++ : Get header data (JPA)
+db --> getHeaderApi : Return header data
+deactivate db
+getHeaderApi --> viewAccount : Return header data (JSON)
+deactivate getHeaderApi
+viewAccount -> viewAccount : Display header
+viewAccount --> getAAGApi ++: Get At a Glance data
+getAAGApi --> db ++ : Get At a Glance data (JPA)
+db --> getAAGApi : Return At a Glance data
+deactivate db
+getAAGApi --> viewAccount : Return At a Glance data (JSON)
+deactivate getAAGApi
+viewAccount -> viewAccount : Display At a Glance tab
+
+
+
+@enduml

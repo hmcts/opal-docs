@@ -1,0 +1,23 @@
+@startuml
+actor "User" as user
+participant "View account" as viewAccount <<UI Page>> #lightskyblue
+participant "Add note" as notes <<UI Page>> #lightskyblue
+participant "Add Note" as postNote <<Fines API>> #lightgreen
+database "Fines DB" as db #lightgreen
+
+
+user ->  viewAccount ++ : Click Header \n'Add account note' button
+viewAccount -> notes ++ :Navigates to
+deactivate viewAccount
+user ->  notes : Inputs data
+user ->  notes : Clicks 'Save Note' button
+notes --> postNote ++: Create note
+postNote --> db ++: Create note (JPA)
+db --> postNote: Return created data
+deactivate db
+postNote --> notes : Return created data (JSON)
+deactivate postNote
+notes -> viewAccount ++: Navigates to
+deactivate notes
+
+@enduml
