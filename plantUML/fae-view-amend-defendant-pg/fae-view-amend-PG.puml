@@ -1,7 +1,7 @@
 @startuml
 actor User
-participant "Parent or Guardian Tab" as viewScreen <<UI Page>> #lightskyblue
-participant "Parent or Guardian Details Screen" as changeScreen <<UI Page>> #lightskyblue
+participant "View Account \n(Parent or Guardian Tab)" as viewScreen <<UI Page>> #lightskyblue
+participant "Amend Parent Guardian Details" as changeScreen <<UI Page>> #lightskyblue
 participant "GET API - Get Defendant Account Party" as getapi <<Fines API>> #lightgreen
 participant "PUT API - Replace Defendant Account Party" as putapi <<Fines API>> #lightgreen
 database "Fines Database" as db #lightgreen

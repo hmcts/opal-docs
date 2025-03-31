@@ -1,7 +1,7 @@
 @startuml
 actor User
-participant "Defendant Tab" as viewScreen <<UI Page>> #lightskyblue
-participant "Defendant Details Screen" as changeScreen <<UI Page>> #lightskyblue
+participant "View Account \n(Defendant Tab)" as viewScreen <<UI Page>> #lightskyblue
+participant "Amend Defendant Details" as changeScreen <<UI Page>> #lightskyblue
 participant "GET API - Get Defendant Account Party" as getapi <<Fines API>> #lightgreen
 participant "PUT API - Replace Defendant Account Party" as putapi <<Fines API>> #lightgreen
 database "Fines Database" as db #lightgreen
