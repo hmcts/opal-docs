@@ -3,10 +3,23 @@ actor "FAE User" as user
 participant "View Account \n(Enforcement tab)" as page <<UI Page>> #lightskyblue
 participant "Get Defendant Account\nEnforcement Status" as enfapi <<Fines API>> #lightgreen
 database "Enforcement Status View" as enfdb <<Fines DB>>  #lightgreen
+participant "Get Defendant Account \nEnforcement Status" as gmasdac <<GMAS DAC>> #yellow
+database "Get Defendant Account \nEnforcement Status" as enfdblegacy <<GOB SP>> #yellow
 user -> page ++: Select Enforcement tab
-page ->> enfapi ++
-enfapi -> enfdb ++ : Defendant Account ID (JPA with DB view)
+page --> enfapi ++
+alt Opal Mode
+enfapi --> enfdb ++ : Defendant Account ID (JPA with DB view)
 enfapi <-- enfdb --: Defendant Account Enforcement Status
+else Legacy Mode
+enfapi --> gmasdac ++ : Defendant Account ID JSON (XML Wrapper)
+gmasdac -> gmasdac: Convert JSON to XML
+gmasdac --> enfdblegacy ++ : Defendant Account ID (XML)
+enfdblegacy --> gmasdac --: Defendant Account \nEnforcement Status (XML)
+enfdblegacy --
+gmasdac --> enfapi --: Defendant Account \nEnforcement Status (XML)
+gmasdac --
+enfapi -> enfapi : Convert XML to JSON
+end
 page <-- enfapi -- : Defendant Account Enforcement Status (JSON)
 page -> page : Display Enforcement tab
 @enduml
