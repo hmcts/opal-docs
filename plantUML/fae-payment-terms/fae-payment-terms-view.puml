@@ -1,0 +1,35 @@
+@startuml
+actor "FAE User" as user
+participant "View Account \n(Payment Terms tab)" as page <<UI Page>> #lightskyblue
+participant "Get Defendant Account\nPayment Terms" as payapi <<Fines API>> #lightgreen
+participant "Get Results" as resapi <<Fines API>> #lightgreen
+participant "Get Business Unit" as busapi <<Fines API>> #lightgreen
+database "Payment Terms" as paydb <<Fines DB>>  #lightgreen
+participant "Get Defendant Account \nPayment Terms" as gmasdac <<GMAS DAC>> #yellow
+database "Get Defendant Account \nPayment Terms" as paydblegacy <<GOB SP>> #yellow
+user -> page ++: Select Payment Terms tab
+page --> payapi ++
+alt Opal Mode
+payapi --> paydb ++ : Defendant Account ID (JPA)
+payapi <-- paydb --: Defendant Account Payment Terms
+else Legacy Mode
+payapi --> gmasdac ++ : Defendant Account ID JSON (XML Wrapper)
+gmasdac -> gmasdac: Convert JSON to XML
+gmasdac --> paydblegacy ++ : Defendant Account ID (XML)
+paydblegacy --> gmasdac --: Defendant Account \nPayment Terms (XML)
+paydblegacy --
+gmasdac --> payapi --: Defendant Account \nPayment Terms (XML)
+gmasdac --
+payapi -> payapi : Convert XML to JSON
+end
+page <-- payapi -- : Defendant Account Payment Terms (JSON)
+page --> resapi ++: Get Results
+resapi --> paydb ++ : Last Enforcement (JPA)
+resapi <-- paydb --: Result data
+resapi --> page --: Result data (JSON)
+page --> busapi ++: Get Business Unit
+busapi --> paydb ++ : Business Unit ID (JPA)
+busapi <-- paydb --: Business Unit data
+busapi --> page --: Business Unit data (JSON)
+page -> page : Display Payment Terms tab
+@enduml

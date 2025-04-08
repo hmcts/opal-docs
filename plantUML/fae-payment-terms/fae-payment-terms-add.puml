@@ -1,0 +1,33 @@
+@startuml
+actor "FAE User" as user
+participant "View Account \n(Payment Terms tab)" as viewpage <<UI Page>> #lightskyblue
+participant "Change Payment Terms" as changepage <<UI Page>> #lightskyblue
+participant "Add Defendant Account\nPayment Terms" as payapi <<Fines API>> #lightgreen
+database "Payment Terms" as paydb <<Fines DB>>  #lightgreen
+participant "Add Defendant Account \nPayment Terms" as gmasdac <<GMAS DAC>> #yellow
+database "Add Defendant Account \nPayment Terms" as paydblegacy <<GOB SP>> #yellow
+user -> viewpage ++: Select 'Change' button
+viewpage -> changepage --++: Navigate to
+user -> changepage : Input data and click 'Save changes' button
+changepage --> payapi --++: Call API with Defendant Account ID \n& Payload (JSON)
+note right
+ The user can also check box 'Request Payment Card' before saving changes.
+ This will trigger an additional API call to Add Defendant Account Payment Card Request.
+ The API pathing is described in the Payment Card Request diagram.
+end note
+alt Opal Mode
+payapi --> paydb ++ : Defendant Account ID & Payload (JPA)
+payapi <-- paydb --: Created Defendant Account Payment Terms
+else Legacy Mode
+payapi --> gmasdac ++ : Defendant Account ID & Payload JSON (XML Wrapper)
+gmasdac -> gmasdac: Convert JSON to XML
+gmasdac --> paydblegacy ++ : Defendant Account ID & Payload (XML)
+paydblegacy --> gmasdac --: Created Defendant Account \nPayment Terms (XML)
+paydblegacy --
+gmasdac --> payapi --: Created Defendant Account \nPayment Terms (XML)
+gmasdac --
+payapi -> payapi : Convert XML to JSON
+end
+viewpage <-- payapi ++-- : Created Defendant Account Payment Terms (JSON)
+viewpage -> viewpage : Display Payment Terms tab
+@enduml

@@ -1,0 +1,28 @@
+@startuml
+actor "FAE User" as user
+participant "View Account \n(Payment Terms tab)" as page <<UI Page>> #lightskyblue
+participant "Request Payment Card" as pcrpage <<UI Page>> #lightskyblue
+participant "Add Defendant Account \nPayment Card Request" as payapi <<Fines API>> #lightgreen
+database "Payment Card Requests" as paydb <<Fines DB>>  #lightgreen
+participant "Add Defendant Account \nPayment Card Request" as gmasdac <<GMAS DAC>> #yellow
+database "Add Defendant Account \nPayment Card Request" as paydblegacy <<GOB SP>> #yellow
+user -> page ++: Click 'Request payment card' link
+page -> pcrpage --++: Navigate to
+user -> pcrpage : Click 'Yes - Request a payment card' button
+pcrpage --> payapi ++
+alt Opal Mode
+payapi --> paydb ++ : Defendant Account ID & \npayload (JPA)
+payapi <-- paydb --: Created Payment Card Request
+else Legacy Mode
+payapi --> gmasdac ++ : Defendant Account ID & \npayload JSON (XML Wrapper)
+gmasdac -> gmasdac: Convert JSON to XML
+gmasdac --> paydblegacy ++ : Defendant Account ID & \npayload (XML)
+paydblegacy --> gmasdac --: Created Payment Card Request (XML)
+paydblegacy --
+gmasdac --> payapi --: Created Payment Card Request (XML)
+gmasdac --
+payapi -> payapi : Convert XML to JSON
+end
+pcrpage <-- payapi -- : Created Payment Card Request (JSON)
+pcrpage -> page --++ : Navigate to
+@enduml
