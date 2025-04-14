@@ -2,18 +2,33 @@
 actor "FAE User" as user
 participant "Defendant Account\n(Enforcement tab)" as page <<UI Page>> #lightskyblue
 participant "Add Enforcement Action" as enfpage <<UI Page>> #lightskyblue
-participant "Enforcement Action Responses" as respage <<UI Page>> #lightskyblue
-participant "Get Defendant Account\nNext Enforcement Actions" as nextenfapi <<Fines API>> #lightgreen
-database "Get Defendant Account\nNext Enforcement Actions" as nextenfsp <<Fines SP>>  #lightgreen
-user -> page : Select <b>Add enforcement action</b> link
-autoactivate on
-page -> enfpage : route to
-enfpage -> nextenfapi : Defendant Account ID
-nextenfapi -> nextenfsp : Defendant Account ID
-nextenfapi <-- nextenfsp : Next Enforcement Actions
-enfpage <-- nextenfapi : Next Enforcement Actions (JSON)
-enfpage -> enfpage : Display list of Next Enforcement Actions
-user -> enfpage : Select <b>Next Enforcement Action</b> from the list
-enfpage -> respage : route to
-user -> respage : Enter Responses
+participant "Selected Enforcement Action" as enfdetpage <<UI Page>> #lightskyblue
+participant "Get Results" as resapi <<Fines API>> #lightgreen
+participant "Add Defendant Account \nEnforcement" as nextenfapi <<Fines API>> #lightgreen
+database "Add Defendant Account \nEnforcement" as nextenfsp <<Fines SP>>  #lightgreen
+database "Results Data" as resdb <<Fines DB>>  #lightgreen
+participant "Add Defendant Account \nEnforcement" as gmasdac <<GMAS DAC>> #yellow
+database "Add Defendant Account \nEnforcement" as gobdb <<GOB SP>> #yellow
+user -> page ++: Select <b>Add enforcement action</b> link
+page -> enfpage --++: route to
+user -> enfpage : Select Enforcement Action from the list and click 'Continue' button
+enfpage -> enfdetpage --++: route to
+enfdetpage --> resapi ++: Get Results
+resapi --> resdb ++ : Result ID (JPA)
+resapi <-- resdb --: Result data
+resapi --> enfdetpage --: Result data (JSON)
+user -> enfdetpage : Enter enforcement action details and click 'Add Enforcement action' button
+enfdetpage --> nextenfapi --++: Defendant Account ID & \npayload (JSON)
+alt Opal Mode
+nextenfapi --> nextenfsp ++: Defendant Account ID & \nInput parameters
+nextenfapi <-- nextenfsp --: Added Enforcement Action
+else Legacy Mode
+nextenfapi --> gmasdac ++: Defendant Account ID & Payload JSON (XML Wrapper)
+gmasdac -> gmasdac: Convert JSON to XML
+gmasdac --> gobdb ++: Defendant Account ID & Payload (XML)
+gobdb --> gmasdac --: Added Enforcement Action (XML)
+gmasdac --> nextenfapi --: Added Enforcement Action (XML)
+nextenfapi -> nextenfapi: Convert XML to JSON
+end
+page <-- nextenfapi ++--: Added Enforcement Action (JSON)
 @enduml

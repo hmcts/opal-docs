@@ -1,0 +1,26 @@
+@startuml
+actor "FAE User" as user
+participant "Defendant Account\n(Enforcement tab)" as page <<UI Page>> #lightskyblue
+participant "Remove Enforcement Hold" as remenfpage <<UI Page>> #lightskyblue
+participant "Add new Enforcement Action" as addenfpage <<UI Page>> #lightskyblue
+participant "Remove Defendant Account \nEnforcement Hold" as remenfapi <<Fines API>> #lightgreen
+database "Remove Defendant Account \nEnforcement Hold" as remenfsp <<Fines SP>>  #lightgreen
+participant "Remove Defendant Account \nEnforcement Hold" as gmasdac <<GMAS DAC>> #yellow
+database "Remove Defendant Account \nEnforcement Hold" as gobdb <<GOB SP>> #yellow
+user -> page ++: Select 'remove' link on enforcement action 'enforcement hold'
+page -> remenfpage --++: route to
+user -> remenfpage : Enter reason and click 'Remove' button
+remenfpage --> remenfapi --++: Defendant Account ID & \npayload (JSON)
+alt Opal Mode
+remenfapi --> remenfsp ++: Defendant Account ID & \nInput parameters
+remenfapi <-- remenfsp --: Status
+else Legacy Mode
+remenfapi --> gmasdac ++: Defendant Account ID & Payload JSON (XML Wrapper)
+gmasdac -> gmasdac: Convert JSON to XML
+gmasdac --> gobdb ++: Defendant Account ID & Payload (XML)
+gobdb --> gmasdac --: Status (XML)
+gmasdac --> remenfapi --: Status (XML)
+remenfapi -> remenfapi: Convert XML to JSON
+end
+addenfpage <-- remenfapi ++--: Added Enforcement Action (JSON)
+@enduml
