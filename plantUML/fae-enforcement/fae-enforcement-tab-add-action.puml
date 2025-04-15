@@ -1,8 +1,8 @@
 @startuml
 actor "FAE User" as user
 participant "Defendant Account\n(Enforcement tab)" as page <<UI Page>> #lightskyblue
-participant "Add Enforcement Action" as enfpage <<UI Page>> #lightskyblue
-participant "Selected Enforcement Action" as enfdetpage <<UI Page>> #lightskyblue
+participant "Select Enforcement" as enfpage <<UI Page>> #lightskyblue
+participant "Add Enforcement" as enfdetpage <<UI Page>> #lightskyblue
 participant "Get Results" as resapi <<Fines API>> #lightgreen
 participant "Add Defendant Account \nEnforcement" as nextenfapi <<Fines API>> #lightgreen
 database "Add Defendant Account \nEnforcement" as nextenfsp <<Fines SP>>  #lightgreen
