@@ -1,0 +1,31 @@
+@startuml
+actor "FAE User" as user
+participant "Add New Enforcement" as page <<UI Page>> #lightskyblue
+participant "Select Enforcement" as enfpage <<UI Page>> #lightskyblue
+participant "Get Defendant Account\nEnforcement Status" as enfapi <<Fines API>> #lightgreen
+database "Enforcement Status View" as enfdb <<Fines DB>>  #lightgreen
+participant "Get Defendant Account \nEnforcement Status" as gmasdac <<GMAS DAC>> #yellow
+database "Get Defendant Account \nEnforcement Status" as enfdblegacy <<GOB SP>> #yellow
+
+user -> page ++: Selects 'Yes' and clicks 'Continue' button
+page --> enfapi ++
+alt Opal Mode
+enfapi --> enfdb ++ : Defendant Account ID (JPA with DB view)
+enfapi <-- enfdb --: Defendant Account Enforcement Status
+else Legacy Mode
+enfapi --> gmasdac ++ : Defendant Account ID JSON (XML Wrapper)
+gmasdac -> gmasdac: Convert JSON to XML
+gmasdac --> enfdblegacy ++ : Defendant Account ID (XML)
+enfdblegacy --> gmasdac --: Defendant Account \nEnforcement Status (XML)
+enfdblegacy --
+gmasdac --> enfapi --: Defendant Account \nEnforcement Status (XML)
+gmasdac --
+enfapi -> enfapi : Convert XML to JSON
+end
+page <-- enfapi -- : Defendant Account Enforcement Status (JSON)
+page -> enfpage --++:Routes to
+note right
+Once routed to the Select Enforcement page the user can add a new Enforcement Action.
+This is end-to-end interaction is described in the Add Enforcement Action diagram.
+end note
+@enduml
