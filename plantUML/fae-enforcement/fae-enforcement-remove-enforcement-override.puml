@@ -1,0 +1,28 @@
+@startuml
+actor "FAE User" as user
+participant "Defendant Account\n(Enforcement tab)" as page <<UI Page>> #lightskyblue
+participant "Remove Enforcement Override" as enfpage <<UI Page>> #lightskyblue
+participant "Update Defendant Account" as upapi <<Fines API>> #lightgreen
+database "Opal Fines Database" as enfdb <<Fines DB>>  #lightgreen
+participant "Update Defendant Account" as gmasdac <<GMAS DAC>> #yellow
+database "Update Defendant Account" as enfdblegacy <<GOB SP>> #yellow
+user -> page ++: Select 'Remove' link on 'Enforcement Override'
+page -> enfpage --++: route to
+user -> enfpage: Select 'Yes - remove' button
+enfpage --> upapi --++: Defendant Account ID & \npayload (JSON)
+alt Opal Mode
+upapi --> enfdb ++ : Defendant Account ID & payload (JPA)
+upapi <-- enfdb --: Updated Defendant Account
+else Legacy Mode
+upapi --> gmasdac ++ : Defendant Account ID & payload JSON (XML Wrapper)
+gmasdac -> gmasdac: Convert JSON to XML
+gmasdac --> enfdblegacy ++ : Defendant Account ID & payload (XML)
+enfdblegacy --> gmasdac --: Updated Defendant Account (XML)
+enfdblegacy --
+gmasdac --> upapi --: Updated Defendant Account (XML)
+gmasdac --
+upapi -> upapi : Convert XML to JSON
+end
+enfpage <-- upapi ++-- : Updated Defendant Account (JSON)
+enfpage -> page --++: Route to
+@enduml

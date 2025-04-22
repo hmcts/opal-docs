@@ -1,0 +1,28 @@
+@startuml
+actor "FAE User" as user
+participant "Defendant Account\n(Enforcement tab)" as page <<UI Page>> #lightskyblue
+participant "Change Collection Order" as colpage <<UI Page>> #lightskyblue
+participant "Update Defendant Account" as enfapi <<Fines API>> #lightgreen
+database "Defendant Account" as enfdb <<Fines DB>>  #lightgreen
+participant "Update Defendant Account" as gmasdac <<GMAS DAC>> #yellow
+database "Update Defendant Account" as enfdblegacy <<GOB SP>> #yellow
+user -> page ++: Select 'Change' link on \n'Collection order status'
+page --> colpage --++: route to
+user -> colpage: Select 'Change' button
+colpage --> enfapi --++: Defendant Account ID & \npayload (JSON)
+alt Opal Mode
+enfapi --> enfdb ++ : Defendant Account ID & payload(JPA)
+enfapi <-- enfdb --: Updated Defendant Account
+else Legacy Mode
+enfapi --> gmasdac ++ : Defendant Account ID & payload JSON (XML Wrapper)
+gmasdac -> gmasdac: Convert JSON to XML
+gmasdac --> enfdblegacy ++ : Defendant Account ID & payload (XML)
+enfdblegacy --> gmasdac --: Updated Defendant Account (XML)
+enfdblegacy --
+gmasdac --> enfapi --: Updated Defendant Account (XML)
+gmasdac --
+enfapi -> enfapi : Convert XML to JSON
+end
+colpage <-- enfapi ++-- : Updated Defendant Account (JSON)
+colpage -> page --++: Route to
+@enduml

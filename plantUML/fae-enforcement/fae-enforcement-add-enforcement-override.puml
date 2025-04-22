@@ -1,0 +1,47 @@
+@startuml
+actor "FAE User" as user
+participant "Defendant Account\n(Enforcement tab)" as page <<UI Page>> #lightskyblue
+participant "Add Enforcement Override" as enfpage <<UI Page>> #lightskyblue
+participant "Get Results" as resapi <<Fines API>> #lightgreen
+participant "Get Enforcers" as enfapi <<Fines API>> #lightgreen
+participant "Get Local Justice Areas" as ljaapi <<Fines API>> #lightgreen
+participant "Update Defendant Account" as upapi <<Fines API>> #lightgreen
+database "Opal Fines Database" as enfdb <<Fines DB>>  #lightgreen
+participant "Update Defendant Account" as gmasdac <<GMAS DAC>> #yellow
+database "Update Defendant Account" as enfdblegacy <<GOB SP>> #yellow
+user -> page ++: Select 'Add enforcement override' link \nor \n'Change' link on 'Enforcement override'
+page --> enfpage --++: route to
+enfpage --> resapi ++: Get Results
+resapi --> enfdb ++: Get Results (JPA)
+enfdb --> resapi --: List of Results
+resapi --> enfpage --: List of Results (JSON)
+opt Enforcement requires enforcer
+enfpage --> enfapi ++: Get Enforcers
+enfapi --> enfdb ++: Get Enforcers (JPA)
+enfdb --> enfapi --: List of Enforcers
+enfapi --> enfpage --: List of Enforcers (JSON)
+end
+opt Enforcement requires LJA
+enfpage --> ljaapi ++: Get Local Justice Areas
+ljaapi --> enfdb ++: Get Local Justice Areas (JPA)
+enfdb --> ljaapi --: List of Local Justice Areas
+ljaapi --> enfpage --: List of Local Justice Areas (JSON)
+end
+user -> enfpage: Select 'Add override' button
+enfpage --> upapi ++: Defendant Account ID & \npayload (JSON)
+alt Opal Mode
+upapi --> enfdb ++ : Defendant Account ID & payload (JPA)
+upapi <-- enfdb --: Updated Defendant Account
+else Legacy Mode
+upapi --> gmasdac ++ : Defendant Account ID & payload JSON (XML Wrapper)
+gmasdac -> gmasdac: Convert JSON to XML
+gmasdac --> enfdblegacy ++ : Defendant Account ID & payload (XML)
+enfdblegacy --> gmasdac --: Updated Defendant Account (XML)
+enfdblegacy --
+gmasdac --> upapi --: Updated Defendant Account (XML)
+gmasdac --
+upapi -> upapi : Convert XML to JSON
+end
+enfpage <-- upapi -- : Updated Defendant Account (JSON)
+enfpage -> page --++: Route to
+@enduml

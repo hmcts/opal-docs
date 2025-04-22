@@ -1,0 +1,34 @@
+@startuml
+actor "FAE User" as user
+participant "Defendant Account\n(Enforcement tab)" as page <<UI Page>> #lightskyblue
+participant "Change Enforcement Court" as coupage <<UI Page>> #lightskyblue
+participant "Get Courts" as couapi <<Fines API>> #lightgreen
+participant "Update Defendant Account" as enfapi <<Fines API>> #lightgreen
+database "Opal Fines Database" as enfdb <<Fines DB>>  #lightgreen
+participant "Update Defendant Account" as gmasdac <<GMAS DAC>> #yellow
+database "Update Defendant Account" as enfdblegacy <<GOB SP>> #yellow
+user -> page ++: Select 'Change' link on \n'Enforcement court'
+page --> coupage --++: route to
+coupage --> couapi ++: Get Courts
+couapi --> enfdb ++: Get Courts (JPA)
+enfdb --> couapi --: List of Courts
+couapi --> coupage --: List of Courts (JSON)
+coupage -> coupage: Populate Court List
+user -> coupage: Selects a court and clicks 'Change' button
+coupage --> enfapi --++: Defendant Account ID & \npayload (JSON)
+alt Opal Mode
+enfapi --> enfdb ++ : Defendant Account ID & payload(JPA)
+enfapi <-- enfdb --: Updated Defendant Account
+else Legacy Mode
+enfapi --> gmasdac ++ : Defendant Account ID & payload JSON (XML Wrapper)
+gmasdac -> gmasdac: Convert JSON to XML
+gmasdac --> enfdblegacy ++ : Defendant Account ID & payload (XML)
+enfdblegacy --> gmasdac --: Updated Defendant Account (XML)
+enfdblegacy --
+gmasdac --> enfapi --: Updated Defendant Account (XML)
+gmasdac --
+enfapi -> enfapi : Convert XML to JSON
+end
+coupage <-- enfapi ++-- : Updated Defendant Account (JSON)
+coupage -> page --++: Route to
+@enduml
