@@ -4,6 +4,7 @@ participant "Defendant Account\n(Enforcement tab)" as page <<UI Page>> #lightsky
 participant "Select Enforcement" as enfpage <<UI Page>> #lightskyblue
 participant "Add Enforcement" as enfdetpage <<UI Page>> #lightskyblue
 participant "Get Results" as resapi <<Fines API>> #lightgreen
+participant "Get Result" as reapi <<Fines API>> #lightgreen
 participant "Add Defendant Account \nEnforcement" as nextenfapi <<Fines API>> #lightgreen
 database "Add Defendant Account \nEnforcement" as nextenfsp <<Fines SP>>  #lightgreen
 database "Results Data" as resdb <<Fines DB>>  #lightgreen
@@ -11,12 +12,16 @@ participant "Add Defendant Account \nEnforcement" as gmasdac <<GMAS DAC>> #yello
 database "Add Defendant Account \nEnforcement" as gobdb <<GOB SP>> #yellow
 user -> page ++: Select <b>Add enforcement action</b> link
 page -> enfpage --++: route to
+enfpage --> resapi ++: Get Results
+resapi --> resdb ++ : Result filters (JPA)
+resapi <-- resdb --: Result data
+resapi --> enfpage --: Result data (JSON)
 user -> enfpage : Select Enforcement Action from the list and click 'Continue' button
 enfpage -> enfdetpage --++: route to
-enfdetpage --> resapi ++: Get Results
-resapi --> resdb ++ : Result ID (JPA)
-resapi <-- resdb --: Result data
-resapi --> enfdetpage --: Result data (JSON)
+enfdetpage --> reapi ++: Get Result
+reapi --> resdb ++ : Result ID (JPA)
+reapi <-- resdb --: Result data
+reapi --> enfdetpage --: Result data (JSON)
 user -> enfdetpage : Enter enforcement action details and click 'Add Enforcement action' button
 enfdetpage --> nextenfapi --++: Defendant Account ID & \npayload (JSON)
 alt Opal Mode
