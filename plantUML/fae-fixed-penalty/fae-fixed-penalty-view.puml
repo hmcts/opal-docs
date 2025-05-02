@@ -1,0 +1,25 @@
+@startuml
+actor "FAE User" as user
+participant "View Account \n(Fixed Penalty tab)" as page <<UI Page>> #lightskyblue
+participant "Get Defendant Account \nFixed Penalty" as enfapi <<Fines API>> #lightgreen
+database "Fixed Penalty Offences" as enfdb <<Fines DB>>  #lightgreen
+participant "Get Defendant Account \nFixed Penalty" as gmasdac <<GMAS DAC>> #yellow
+database "Get Defendant Account \nFixed Penalty" as enfdblegacy <<GOB SP>> #yellow
+user -> page ++: Select Fixed Penalty tab
+page --> enfapi ++
+alt Opal Mode
+enfapi --> enfdb ++ : Defendant Account ID (JPA)
+enfapi <-- enfdb --: Defendant Account Fixed Penalty
+else Legacy Mode
+enfapi --> gmasdac ++ : Defendant Account ID JSON (XML Wrapper)
+gmasdac -> gmasdac: Convert JSON to XML
+gmasdac --> enfdblegacy ++ : Defendant Account ID (XML)
+enfdblegacy --> gmasdac --: Defendant Account \nFixed Penalty (XML)
+enfdblegacy --
+gmasdac --> enfapi --: Defendant Account \nFixed Penalty (XML)
+gmasdac --
+enfapi -> enfapi : Convert XML to JSON
+end
+page <-- enfapi -- : Defendant Account Fixed Penalty (JSON)
+page -> page : Display Fixed Penalty tab
+@enduml
