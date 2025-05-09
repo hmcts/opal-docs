@@ -1,5 +1,4 @@
 @startuml
-
 title At A Glance Tab - Initial API Call and Caching
 
 actor User
@@ -10,6 +9,5 @@ participant "Cache"
 User -> Glance : Navigates to At A Glance tab
 Glance -> API : Call getDefendantAccountAtAGlance
 API -> Cache : Store response
-Glance -> Cache : Use response to populate view
-
+Glance <- Cache : Use response to populate view
 @enduml
