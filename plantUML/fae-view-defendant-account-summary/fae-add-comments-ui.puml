@@ -1,0 +1,21 @@
+@startuml
+title Comments Amendment Page - Resolver and Cache Usage
+
+actor User
+participant "Route Resolver\n(/fines/account/comments/add)" as Resolver
+participant "Cache"
+participant "getDefendantAccountAtAGlance API" as API
+participant "Comments Amendment Page" as Page
+
+User -> Resolver : Navigates to /fines/account/comments/add
+Resolver -> Cache : Retrieve cached API response
+
+alt Response found in cache
+    Cache -> Resolver : Return cached data
+else No cache or invalidated
+    Resolver -> API : Call getDefendantAccountAtAGlance
+    API -> Resolver : Return data
+end
+
+Resolver -> Page : Map response to form structure and render page and re-populate form fields
+@enduml

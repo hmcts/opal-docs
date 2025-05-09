@@ -1,0 +1,31 @@
+@startuml
+actor User
+participant "Router" as Router
+participant "URL" as URL
+participant "State Store" as Store
+participant "Account View Page" as Page
+
+== Scenario 1: Using :accountId in route ==
+
+User -> URL : Navigate to /fines/account/details/:accountId
+URL -> Router : Route to Account View
+Router -> Page : Load with accountId from URL
+User -> URL : Navigate to /fines/account/:accountId/add/comments
+URL -> Router : Route to Add Comments
+Router -> Page : Load with accountId from URL
+
+== Scenario 2: Omitting :accountId ==
+
+User -> URL : Navigate to /fines/account/details/:accountId
+URL -> Router : Route to Account View
+Router -> Page : Load with accountId from URL
+Page -> Store : Store accountId
+
+User -> URL : Navigate to /fines/account/add/comments
+URL -> Router : Route to Add Comments
+Router -> Page : Load
+Page -> Store : Read accountId from store
+note right of Page
+Account ID must exist in store.\nNo direct URL navigation without context.
+end note
+@enduml
