@@ -1,0 +1,15 @@
+@startuml
+
+title At A Glance Tab - Initial API Call and Caching
+
+actor User
+participant "At A Glance Tab" as Glance
+participant "getDefendantAccountAtAGlance API" as API
+participant "Cache"
+
+User -> Glance : Navigates to At A Glance tab
+Glance -> API : Call getDefendantAccountAtAGlance
+API -> Cache : Store response
+Glance -> Cache : Use response to populate view
+
+@enduml
