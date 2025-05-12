@@ -1,0 +1,13 @@
+@startuml
+actor User
+participant "Frontend" as Frontend
+participant "getDefendantAccountParty API" as API
+database "In-Memory Cache" as Cache
+
+User -> Frontend : Selects Defendant or Parent/Guardian tab
+Frontend -> Cache : Clear in-memory cache
+Frontend -> API : getDefendantAccountParty()
+API --> Frontend : Return data
+Frontend -> Cache : Store response
+Frontend --> User : Display updated account data
+@enduml

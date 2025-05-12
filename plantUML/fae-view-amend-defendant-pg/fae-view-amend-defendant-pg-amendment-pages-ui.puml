@@ -1,0 +1,21 @@
+@startuml
+title Defendant/Company or Parent or Guardian Amendment Page - Resolver and Cache Usage
+
+actor User
+participant "Route Resolver\n(/defendant/amend or /parent-guardian/amend)" as Resolver
+database "In-Memory Cache" as Cache
+participant "getDefendantAccountParty API" as API
+participant "Amendment Page\n(Defendant/Company or Parent/Guardian)" as Page
+
+User -> Resolver : Navigates to /fines/account/defendant/amend or /fines/account/parent-guardian/amend 
+Resolver -> Cache : Retrieve cached API response
+
+alt Response found in cache
+    Cache -> Resolver : Return cached data
+else No cache or invalidated
+    Resolver -> API : Call getDefendantAccountParty
+    API -> Resolver : Return data
+end
+
+Resolver -> Page : Map response to form structure and render page and re-populate form fields
+@enduml
