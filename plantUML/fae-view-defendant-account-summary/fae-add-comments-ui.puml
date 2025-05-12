@@ -3,8 +3,8 @@ title Comments Amendment Page - Resolver and Cache Usage
 
 actor User
 participant "Route Resolver\n(/fines/account/comments/add)" as Resolver
-participant "Cache"
 participant "getDefendantAccountAtAGlance API" as API
+participant "Cache"
 participant "Comments Amendment Page" as Page
 
 User -> Resolver : Navigates to /fines/account/comments/add
@@ -14,6 +14,7 @@ alt Response found in cache
     Cache -> Resolver : Return cached data
 else No cache or invalidated
     Resolver -> API : Call getDefendantAccountAtAGlance
+    API -> Cache : Store response in memory
     API -> Resolver : Return data
 end
 
