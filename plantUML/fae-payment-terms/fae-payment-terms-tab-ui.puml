@@ -1,0 +1,19 @@
+@startuml
+actor User
+participant "Frontend" as Frontend
+participant "getDefendantAccountPaymentTermsLatest API" as API
+participant "getResult API" as API2
+database "In-Memory Cache" as Cache
+
+== Fetch Fresh Data on Tab Selection ==
+
+User -> Frontend : Selects Payment Terms tab
+Frontend -> Cache : Clear in-memory cache
+Frontend -> API : getDefendantAccountPaymentTermsLatest()
+API -> Cache : Store response in memory
+API --> Frontend : Return data
+Frontend -> API2 : getResult()
+API2 -> Cache : Store response in memory
+API2 --> Frontend : Return data
+Frontend --> User : Display updated payment terms data
+@enduml
