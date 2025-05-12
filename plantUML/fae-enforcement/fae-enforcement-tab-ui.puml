@@ -1,0 +1,13 @@
+@startuml
+title Enforcement Tab - Initial API Call and Caching
+
+actor User
+participant "Enforcement Tab" as Glance
+participant "getDefendantAccountEnfStatus API" as API
+participant "Cache"
+
+User -> Glance : Navigates to Enforcement tab
+Glance -> API : Call getDefendantAccountEnfStatus
+API -> Cache : Store response
+Glance <- Cache : Use response to populate view
+@enduml
