@@ -1,13 +1,13 @@
 @startuml
-title Defendant/Company or Parent or Guardian Amendment Page - Resolver and Cache Usage
+title Amend Debtor Details Page - Resolver and Cache Usage
 
 actor User
-participant "Route Resolver\n(/defendant/amend or /parent-guardian/amend)" as Resolver
+participant "Route Resolver\n(/fines/account/debtor/amend)" as Resolver
 participant "getDefendantAccountParty API" as API
 database "In-Memory Cache" as Cache
-participant "Amendment Page\n(Defendant/Company or Parent/Guardian)" as Page
+participant "Amendment Page\n(Amend Debtor Details)" as Page
 
-User -> Resolver : Navigates to /fines/account/defendant/amend or /fines/account/parent-guardian/amend 
+User -> Resolver : Navigates to /fines/account/debtor/amend
 Resolver -> Cache : Retrieve cached API response
 
 alt Response found in cache
