@@ -1,0 +1,29 @@
+@startuml
+actor "User" as user
+participant "Account Details" as viewAccount <<UI Page>> #lightskyblue
+participant "Add Non-Debtor Details" as addNDD <<UI Page>> #lightskyblue
+participant "Add Defendant Account Party" as updateAccountApi <<Fines API>> #lightgreen
+database "Fines DB" as db #lightgreen
+participant "Add Defendant Account Party" as gmasdac <<GMAS DAC>> #yellow
+database "Add Defendant Account Party" as gobsp <<GOB SP>> #yellow
+
+
+user -> viewAccount ++: Select 'add parent or guardian details' link
+viewAccount -> addNDD --++: Navigate to
+user -> addNDD : Input data and click 'Save changes' button
+addNDD --> updateAccountApi ++: Call API with Defendant Account ID \n& Payload (JSON)
+alt Opal Mode
+updateAccountApi --> db ++ : Defendant Account ID & Payload (JPA)
+updateAccountApi <-- db --: Created Defendant Account Party
+else Legacy Mode
+updateAccountApi --> gmasdac ++ : Defendant Account ID & Payload JSON (XML Wrapper)
+gmasdac -> gmasdac: Convert JSON to XML
+gmasdac --> gobsp ++ : Defendant Account ID & Payload (XML)
+gmasdac <-- gobsp --: Created Defendant Account Party (XML)
+gmasdac --> updateAccountApi --: Created Defendant Account Party (XML)
+updateAccountApi -> updateAccountApi: Convert XML to JSON
+end
+addNDD <-- updateAccountApi --: Created Defendant Account Party (JSON)
+
+
+@enduml

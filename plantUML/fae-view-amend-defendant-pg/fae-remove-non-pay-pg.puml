@@ -1,0 +1,29 @@
+@startuml
+actor "User" as user
+participant "Account Details" as viewAccount <<UI Page>> #lightskyblue
+participant "Remove Non-Debtor Details" as removeNDD <<UI Page>> #lightskyblue
+participant "Remove Defendant Account Party" as updateAccountApi <<Fines API>> #lightgreen
+database "Fines DB" as db #lightgreen
+participant "Remove Defendant Account Party" as gmasdac <<GMAS DAC>> #yellow
+database "Remove Defendant Account Party" as gobsp <<GOB SP>> #yellow
+
+
+user -> viewAccount ++: Select 'remove parent or guardian details' link
+viewAccount -> removeNDD --++: Navigate to
+user -> removeNDD : Confirm and click 'Yes - remove' button
+removeNDD --> updateAccountApi ++: Call API with Defendant Account ID
+alt Opal Mode
+updateAccountApi --> db ++ : Defendant Account ID (JPA)
+updateAccountApi <-- db --: Status
+else Legacy Mode
+updateAccountApi --> gmasdac ++ : Defendant Account ID JSON (XML Wrapper)
+gmasdac -> gmasdac: Convert JSON to XML
+gmasdac --> gobsp ++ : Defendant Account ID (XML)
+gmasdac <-- gobsp --: Status (XML)
+gmasdac --> updateAccountApi --: Status (XML)
+updateAccountApi -> updateAccountApi: Extract Status
+end
+removeNDD <-- updateAccountApi --: Status (JSON)
+
+
+@enduml
