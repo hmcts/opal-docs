@@ -1,0 +1,26 @@
+@startuml
+title Change Enforcement Court Page - Resolver and Cache Usage
+
+actor User
+participant "Route Resolver\n(/fines/account/enforcement/court/change)" as Resolver
+participant "getCourts API" as API
+database "In-Memory Cache" as Cache
+database "opal-fines-service" as Backend
+participant "Amendment Page\n(Enforcement Court)" as Page
+
+User -> Resolver : Navigates to /fines/account/enforcement/court/change
+
+alt Response found in cache
+    Resolver -> API : Call getCourts
+    API <-> Cache : Fetch cached data
+    API -> Resolver : Return cached data
+else No cache or invalidated
+    Resolver -> API : Call getCourts
+    API <-> Backend : Call /opal-fines-service/courts
+    API -> Cache : Store response in memory
+    API -> Resolver : Return data
+end
+
+
+Resolver -> Page : Map response to form structure and render page and re-populate form fields
+@enduml
