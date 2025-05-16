@@ -1,0 +1,69 @@
+@startuml
+title Change Enforcement Override Amendment Page - Resolver and Cache Usage
+
+actor User
+participant "Route Resolver\n(/fines/account/enforcement/override/change)" as Resolver
+participant "getDefendantAccountEnfStatus API" as API
+participant "getResult API" as API2
+participant "getLocalJusticeAreas API" as API3
+participant "getEnforcers API" as API4
+database "In-Memory Cache" as Cache
+database "opal-fines-service" as Backend
+participant "Amendment Page\n(Change Enforcement Override)" as Page
+
+User -> Resolver : Navigates to /fines/account/enforcement/override/change
+
+alt Response found in cache
+    Resolver -> API : Call getDefendantAccountPaymentTermsLatest
+    API <-> Cache : Fetch cached data
+    Resolver -> API2 : Call getDefendantAccountPaymentTermsLatest
+    API2 <-> Cache : Fetch cached data
+    API -> Resolver : Return cached data
+else No cache or invalidated
+    Resolver -> API : Call getDefendantAccountPaymentTermsLatest
+    API <-> Backend : Call /opal-fines-service/defendant-accounts/{id}/payment-terms/latest
+    API -> Cache : Store response in memory
+    API -> Resolver : Return data
+end
+
+alt Response found in cache
+    Resolver -> API2 : Call getResult
+    API2 <-> Cache : Fetch cached data
+    API2 -> Resolver : Return cached data
+else No cache or invalidated
+    Resolver -> API2 : Call getResult
+    API2 <-> Backend : /opal-fines-service/results/{id}
+    API2 -> Cache : Store response in memory
+    API2 -> Resolver : Return data
+end
+
+== IF LJA REQUIRED ==
+
+alt Response found in cache
+    Resolver -> API3 : Call getLocalJusticeAreas
+    API3 <-> Cache : Fetch cached data
+    API -> Resolver : Return cached data
+else No cache or invalidated
+    Resolver -> API3 : Call getLocalJusticeAreas
+    API3 <-> Backend : Call /opal-fines-service/local-justice-areas 
+    API3 -> Cache : Store response in memory
+    API3 -> Resolver : Return data
+end
+
+== IF ENFORCERS REQUIRED ==
+
+alt Response found in cache
+    Resolver -> API4 : Call getEnforcers
+    API4 <-> Cache : Fetch cached data
+    API4 -> Resolver : Return cached data
+else No cache or invalidated
+    Resolver -> API4 : Call getEnforcers
+    API4 <-> Backend : Call /opal-fines-service/courts 
+    API4 -> Cache : Store response in memory
+    API4 -> Resolver : Return data
+end
+
+
+
+Resolver -> Page : Map response to form structure and render page and re-populate form fields
+@enduml
