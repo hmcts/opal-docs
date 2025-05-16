@@ -4,10 +4,13 @@ title Enforcement Tab - Initial API Call and Caching
 actor User
 participant "Enforcement Tab" as Glance
 participant "getDefendantAccountEnfStatus API" as API
-participant "Cache"
+database "In-Memory Cache" as Cache
+database "opal-fines-service" as Backend
 
-User -> Glance : Navigates to Enforcement tab
+User -> Glance : Selects to Enforcement tab
 Glance -> API : Call getDefendantAccountEnfStatus
+API -> Cache : Clear in-memory cache
+API <-> Backend : Call /opal-fines-service/defendant-accounts/{id}/enforcement-status
 API -> Cache : Store response
 Glance <- Cache : Use response to populate view
 @enduml

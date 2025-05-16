@@ -4,15 +4,18 @@ participant "Frontend" as Frontend
 participant "getDefendantAccountPaymentTermsLatest API" as API
 participant "getResult API" as API2
 database "In-Memory Cache" as Cache
+database "opal-fines-service" as Backend
 
 == Fetch Fresh Data on Tab Selection ==
 
 User -> Frontend : Selects Payment Terms tab
-Frontend -> Cache : Clear in-memory cache
 Frontend -> API : getDefendantAccountPaymentTermsLatest()
+API -> Cache : Clear in-memory cache
+API <-> Backend : Call /opal-fines-service/defendant-accounts/{id}/payment-terms/latest
 API -> Cache : Store response in memory
 API --> Frontend : Return data
 Frontend -> API2 : getResult()
+API2 <-> Backend : Call /opal-fines-service/results/{id}
 API2 -> Cache : Store response in memory
 API2 --> Frontend : Return data
 Frontend --> User : Display updated payment terms data

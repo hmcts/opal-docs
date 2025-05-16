@@ -3,12 +3,14 @@ actor User
 participant "Frontend" as Frontend
 participant "getDefendantAccountParty API" as API
 database "In-Memory Cache" as Cache
+database "opal-fines-service" as Backend
 
 == Fetch Fresh Data on Tab Selection ==
 
 User -> Frontend : Selects Defendant or Parent/Guardian tab
-Frontend -> Cache : Clear in-memory cache
 Frontend -> API : getDefendantAccountParty()
+API -> Cache : Clear in-memory cache
+API <-> Backend : Call /opal-fines-service/defendant-accounts/{id}/defendant-account-parties/{id}
 API -> Cache : Store response in memory
 API --> Frontend : Return structured data\n(keys always present, null if missing)
 Frontend --> User : Display updated account data

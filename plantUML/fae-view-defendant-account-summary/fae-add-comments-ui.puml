@@ -4,16 +4,21 @@ title Comments Amendment Page - Resolver and Cache Usage
 actor User
 participant "Route Resolver\n(/fines/account/comments/add)" as Resolver
 participant "getDefendantAccountAtAGlance API" as API
-participant "Cache"
+database "In-Memory Cache" as Cache
+database "opal-fines-service" as Backend
 participant "Comments Amendment Page" as Page
 
 User -> Resolver : Navigates to /fines/account/comments/add
 Resolver -> Cache : Retrieve cached API response
 
 alt Response found in cache
-    Cache -> Resolver : Return cached data
+    Resolver -> API : Call getDefendantAccountAtAGlance
+    API <-> Cache : Fetch cached data
+    API -> Resolver : Return cached data
 else No cache or invalidated
     Resolver -> API : Call getDefendantAccountAtAGlance
+    API -> Cache : Store response in memory
+    API <-> Backend : Call  /opal-fines-service/defendant-accounts/{id}/at-a-glance
     API -> Cache : Store response in memory
     API -> Resolver : Return data
 end
