@@ -14,13 +14,13 @@ participant "Amendment Page\n(Change Enforcement Override)" as Page
 User -> Resolver : Navigates to /fines/account/enforcement/override/change
 
 alt Response found in cache
-    Resolver -> API : Call getDefendantAccountPaymentTermsLatest
+    Resolver -> API : Call getDefendantAccountEnfStatus
     API <-> Cache : Fetch cached data
-    Resolver -> API2 : Call getDefendantAccountPaymentTermsLatest
+    Resolver -> API2 : Call getDefendantAccountEnfStatus
     API2 <-> Cache : Fetch cached data
     API -> Resolver : Return cached data
 else No cache or invalidated
-    Resolver -> API : Call getDefendantAccountPaymentTermsLatest
+    Resolver -> API : Call getDefendantAccountEnfStatus
     API <-> Backend : Call /opal-fines-service/defendant-accounts/{id}/payment-terms/latest
     API -> Cache : Store response in memory
     API -> Resolver : Return data
