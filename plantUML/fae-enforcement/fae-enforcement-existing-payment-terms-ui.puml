@@ -1,0 +1,25 @@
+@startuml
+title Existing Payment Terms Page - Resolver and Cache Usage
+
+actor User
+participant "Route Resolver\n(/fines/account/enforcement/action/existing-payment-terms)" as Resolver
+participant "getDefendantAccountPaymentTermsLatest API" as API
+database "In-Memory Cache" as Cache
+database "opal-fines-service" as Backend
+participant "View Page\n(Existing Payment Terms)" as Page
+
+User -> Resolver : Navigates to /fines/account/enforcement/action/existing-payment-terms
+
+alt Response found in cache
+    Resolver -> API : Call getDefendantAccountPaymentTermsLatest
+    API <-> Cache : Fetch cached data
+    API -> Resolver : Return cached data
+else No cache or invalidated
+    Resolver -> API : Call getDefendantAccountPaymentTermsLatest
+    API <-> Backend : Call /opal-fines-service/defendant-accounts/{id}/payment-terms/latest
+    API -> Cache : Store response in memory
+    API -> Resolver : Return data
+end
+
+Resolver -> Page : Return data
+@enduml

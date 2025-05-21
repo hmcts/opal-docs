@@ -1,0 +1,37 @@
+@startuml
+title Select Enforcement Page - Resolver and Cache Usage
+
+actor User
+participant "Route Resolver\n(/fines/account/enforcement/action/select)" as Resolver
+participant "getDefendantAccountEnfStatus API" as API
+participant "getResults API" as API2
+database "In-Memory Cache" as Cache
+database "opal-fines-service" as Backend
+participant "View Page\n(Add Enforcement Page)" as Page
+
+User -> Resolver : Navigates to /fines/account/enforcement/action/select
+
+alt Response found in cache
+    Resolver -> API : Call getDefendantAccountEnfStatus
+    API <-> Cache : Fetch cached data
+    API -> Resolver : Return cached data
+else No cache or invalidated
+    Resolver -> API : Call getDefendantAccountEnfStatus
+    API <-> Backend : Call /opal-fines-service/defendant-accounts/{id}/enforcement-status
+    API -> Cache : Store response in memory
+    API -> Resolver : Return data
+end
+
+alt Response found in cache
+    Resolver -> API : Call getResults
+    API <-> Cache : Fetch cached data
+    API -> Resolver : Return cached data
+else No cache or invalidated
+    Resolver -> API : Call getResults
+    API <-> Backend : Call /opal-fines-service/results
+    API -> Cache : Store response in memory
+    API -> Resolver : Return data
+end
+
+Resolver -> Page : Return data
+@enduml
