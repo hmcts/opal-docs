@@ -4,10 +4,13 @@ title At A Glance Tab - Initial API Call and Caching
 actor User
 participant "At A Glance Tab" as Glance
 participant "getDefendantAccountAtAGlance API" as API
-participant "Cache"
+database "In-Memory Cache" as Cache
+database "opal-fines-service" as Backend
 
-User -> Glance : Navigates to At A Glance tab
+User -> Glance : Selects At A Glance tab
 Glance -> API : Call getDefendantAccountAtAGlance
+API -> Cache : Clear in-memory cache
+API <-> Backend : Call /opal-fines-service/defendant-accounts/{id}/at-a-glance
 API -> Cache : Store response
 Glance <- Cache : Use response to populate view
 @enduml
