@@ -1,0 +1,32 @@
+@startuml
+title accountGuard Flow
+
+actor User
+participant "Router" as Router
+participant "accountGuard"
+participant "opal-user-service" as Service
+database "Opal Backend" as Backend
+participant "Dashboard" as Dashboard
+participant "Holding Page" as Holding
+
+User -> Router : Request navigation to guarded route
+Router -> accountGuard : canActivate()
+accountGuard -> Service : getUserState()
+Service -> Backend : Fetch user account
+Backend --> Service : User account or null
+Service --> accountGuard : User account or null
+
+alt User account exists
+    accountGuard --> Router : return true
+    Router --> Dashboard : Navigate to dashboard
+else No user account
+    accountGuard --> Router : return false
+    Router --> Holding : Redirect to holding page
+end
+
+note right of accountGuard
+  Replaces user-state resolver
+  for routes requiring a user account
+end note
+
+@enduml
