@@ -1,0 +1,23 @@
+@startuml
+actor "User" as user
+participant "View account \n(at a glance)" as viewAccount <<UI Page>> #lightskyblue
+participant "Add Comments" as comments <<UI Page>> #lightskyblue
+participant "Update Creditor Account" as updateAccountApi <<Fines API>> #lightgreen
+database "Fines DB" as db #lightgreen
+
+
+user ->  viewAccount ++ : Click Comments \n'change' link
+viewAccount -> comments ++ :Navigates to
+viewAccount --
+user ->  comments : Inputs data
+user ->  comments : Clicks 'Save Comments' button
+comments --> updateAccountApi ++: Update comments
+updateAccountApi --> db ++: Update comments (JPA)
+db --> updateAccountApi: Return updated data
+db --
+updateAccountApi --> comments : Return updated data (JSON)
+updateAccountApi --
+comments -> viewAccount ++: Navigates to
+deactivate comments
+
+@enduml
