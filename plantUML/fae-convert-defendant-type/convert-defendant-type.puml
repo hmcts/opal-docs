@@ -1,0 +1,28 @@
+@startuml
+actor "User" as user
+participant "Account Details" as viewAccount <<UI Page>> #lightskyblue
+participant "Convert Account" as conAcc <<UI Page>> #lightskyblue
+participant "Amend Debtor Details" as amendDD <<UI Page>> #lightskyblue
+participant "Replace Defendant Account Party" as replaceDefAccParty <<Fines API>> #lightgreen
+database "Fines DB" as db #lightgreen
+participant "Replace Defendant Account Party" as gmasdac <<GMAS DAC>> #yellow
+database "Replace Defendant Account Party" as gobsp <<GOB SP>> #yellow
+
+user ->  viewAccount ++ : Clicks 'Convert to' link
+viewAccount -> conAcc --++ : Navigates to
+user ->  conAcc : Confirms conversion
+conAcc -> amendDD --++ : Navigates to
+user ->  amendDD : Inputs data and clicks 'Save' button
+amendDD --> replaceDefAccParty ++: Replace Defendant Account Party
+alt Opal Mode
+replaceDefAccParty --> db ++: Replace Defendant Account Party (JPA)
+db --> replaceDefAccParty --: Return updated data
+else Legacy Mode
+replaceDefAccParty --> gmasdac ++: Replace Defendant Account Party
+gmasdac --> gobsp --++: Replace Defendant Account Party (SP)
+gobsp --> replaceDefAccParty --: Return updated data
+end
+replaceDefAccParty --> amendDD --: Return updated data (JSON)
+amendDD -> viewAccount ++: Navigates to
+
+@enduml
