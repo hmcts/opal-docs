@@ -24,8 +24,9 @@ replaceDefAccParty --> db ++: Replace Defendant Account Party (JPA)
 db --> replaceDefAccParty --: Return updated data
 else Legacy Mode
 replaceDefAccParty --> gmasdac ++: Replace Defendant Account Party
-gmasdac --> gobsp --++: Replace Defendant Account Party (SP)
-gobsp --> replaceDefAccParty --: Return updated data
+gmasdac --> gobsp ++: Replace Defendant Account Party (SP)
+gobsp --> gmasdac --: Return updated data
+gmasdac --> replaceDefAccParty --: Return updated data
 end
 replaceDefAccParty --> amendDD --: Return updated data (JSON)
 amendDD -> viewAccount ++: Navigates to
