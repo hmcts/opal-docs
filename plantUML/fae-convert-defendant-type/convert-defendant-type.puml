@@ -14,6 +14,11 @@ user ->  conAcc : Confirms conversion
 conAcc -> amendDD --++ : Navigates to
 user ->  amendDD : Inputs data and clicks 'Save' button
 amendDD --> replaceDefAccParty ++: Replace Defendant Account Party
+note right
+If the request involves changing the defendant account type from an individual to a company,
+any non-paying parent or guardian Defendant Account Party entities must also be removed
+as part of the same transaction.
+end note
 alt Opal Mode
 replaceDefAccParty --> db ++: Replace Defendant Account Party (JPA)
 db --> replaceDefAccParty --: Return updated data
