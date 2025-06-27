@@ -5,7 +5,7 @@ participant "opal-fines-service" as Api
 participant "Account Details Page" as Page
 participant "State Store" as Store
 
-User -> Resolver : Navigate to /account/details/:accountId
+User -> Resolver : Navigate to /account/:accountId/details/
 Resolver <-> Api : getDefendantAccountHeadingData(accountId)
 Resolver <-> Api : getBusinessUnitById(accountId)
 Resolver -> Page : Route to page with heading and business unit configuration data
