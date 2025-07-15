@@ -2,13 +2,13 @@
 title Amend Debtor Details Page - Resolver and Cache Usage
 
 actor User
-participant "Route Resolver\n(/fines/account/debtor/amend)" as Resolver
+participant "Route Resolver\n(/fines/account/defendant/:accountId/debtor/:partyType/amend)" as Resolver
 participant "getDefendantAccountParty API" as API
 database "In-Memory Cache" as Cache
 database "opal-fines-service" as Backend
 participant "Amendment Page\n(Amend Debtor Details)" as Page
 
-User -> Resolver : Navigates to /fines/account/debtor/amend
+User -> Resolver : Navigates to /fines/account/defendant/:accountId/debtor/:partyType/amend
 
 alt Response found in cache
     Resolver -> API : Call getDefendantAccountParty
@@ -16,7 +16,7 @@ alt Response found in cache
     API -> Resolver : Return cached data
 else No cache or invalidated
     Resolver -> API : Call getDefendantAccountParty
-    API <-> Backend : Call /opal-fines-service/defendant-accounts/{id}/payment-terms/latest
+    API <-> Backend : Call /defendant-accounts/{id}/defendant-account-parties/{id}
     API -> Cache : Store response in memory
     API -> Resolver : Return data
 end
