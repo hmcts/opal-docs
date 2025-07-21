@@ -1,0 +1,17 @@
+@startuml
+actor User
+participant "Frontend" as Frontend
+participant "getDefendantAccountImpositions API" as API
+database "In-Memory Cache" as Cache
+database "opal-fines-service" as Backend
+
+== Fetch Fresh Data on Tab Selection ==
+
+User -> Frontend : Selects Impositions tab
+Frontend -> API : getDefendantAccountImpositions()
+API -> Cache : Clear in-memory cache
+API <-> Backend : Call /opal-fines-service/defendant-accounts/{id}/impositions
+API -> Cache : Store response in memory
+API --> Frontend : Return structured data\n(keys always present, null if missing)
+Frontend --> User : Display updated imposition data
+@enduml
