@@ -1,0 +1,18 @@
+@startuml
+actor "Inputter" as user
+participant "Permission Denied Page" as error <<UI Page>> #lightskyblue
+participant "Review Account" as review <<UI Page>> #lightskyblue
+participant "Add Draft Account" as fines <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+user -> review ++: Click <b>Submit</b>
+review -> fines ++ : Draft Account (JSON) + Access Token
+alt Permission Accepted
+fines -> db ++ : Create Draft Account record (JPA)
+fines <-- db -- : Draft Account record
+review <-- fines : Draft Account (JSON)
+else Permission Denied
+review <-- fines -- : HTTP 403 Forbidden (Problem JSON)
+error <- review --++: Route to
+end
+@enduml
