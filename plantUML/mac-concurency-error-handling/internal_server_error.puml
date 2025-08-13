@@ -1,0 +1,18 @@
+@startuml
+actor "Inputter" as user
+participant "Internal Server Error Page" as error <<UI Page>> #lightskyblue
+participant "Review Account" as review <<UI Page>> #lightskyblue
+participant "Add Draft Account" as fines <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+user -> review ++: Click <b>Submit</b>
+review -> fines ++ : Draft Account (JSON)
+alt Successful Submission
+fines -> db ++ : Create Draft Account record (JPA)
+fines <-- db -- : Draft Account record
+review <-- fines : Draft Account (JSON)
+else Internal server error
+review <-- fines -- : HTTP 500 Internal Server Error (Problem JSON [retriable: False])
+error <- review --++: Route to
+end
+@enduml

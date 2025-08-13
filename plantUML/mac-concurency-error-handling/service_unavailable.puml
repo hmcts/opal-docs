@@ -1,0 +1,18 @@
+@startuml
+actor "Inputter" as user
+
+participant "Review Account" as review <<UI Page>> #lightskyblue
+participant "Add Draft Account" as fines <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+user -> review ++: Click <b>Submit</b>
+review -> fines ++ : Draft Account (JSON)
+alt Submission successful
+fines -> db ++ : Create Draft Account record (JPA)
+fines <-- db -- : Draft Account record
+review <-- fines : Draft Account (JSON)
+else Service unavailable
+review <-- fines -- : HTTP 503 Service Unavailable (Problem JSON [retriable: True])
+review -> review : Display a banner warning on the current page\n using the title and detail from the backend response
+end
+@enduml

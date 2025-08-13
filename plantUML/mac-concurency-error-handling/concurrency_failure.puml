@@ -1,21 +1,23 @@
 @startuml
 actor "Inputter" as user
-participant "Error Page" as error <<UI Page>> #lightskyblue
+participant "Concurrency Failure Page" as error <<UI Page>> #lightskyblue
 participant "Account Details" as details <<UI Page>> #lightskyblue
 participant "Review Account" as review <<UI Page>> #lightskyblue
 participant "Get Draft Account" as account <<Fines API>> #lightgreen
 participant "Replace Draft Account" as replace <<Fines API>> #lightgreen
 database "Fines DB" as db #lightgreen
+activate details
 details -> account ++ : Draft Account ID
 account -> db ++ : Retrieve Draft Account record (JPA)
-account <-- db -- : Draft Account record + account version
+account <-- db -- : Draft Account record + Account version
 details <-- account -- : Draft Account (JSON)
 details -> details : Display Draft Account
 user -> details : Click Check Account button
 details -> review ++ : Route to
+user -> review : Select Submit for review
 deactivate details
 
-review -> replace ++ : Draft Account ID + Account version
+review -> replace ++ : Draft Account + Account version
 alt Account version matches
 replace -> db ++ : Update Draft Account record (JPA)
 replace <- db -- : Updated Draft Account record
