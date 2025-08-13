@@ -1,0 +1,25 @@
+@startuml
+actor User
+participant "Account Details \n(Impositions Tab)" as viewScreen <<UI Page>> #lightskyblue
+participant "Get Defendant Account Impositions" as getapi <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+participant "GMAS DAC" as gmasdac <<API>> #yellow
+database "Get Defendant Account Impositions" as dblegacy <<GOB SP>> #yellow
+
+User -> viewScreen ++ : Navigates to tab
+viewScreen --> getapi ++ : Defendant Account ID
+alt Opal Mode
+getapi --> db ++ : Get data (JPA)
+db --> getapi -- : Return data (JSON)
+else Legacy Mode
+getapi --> gmasdac ++ : Get Defendant Account Impositions (JSON)
+gmasdac -> gmasdac: Convert JSON to XML
+gmasdac --> dblegacy ++ : Get Defendant Account Impositions (SP)
+dblegacy --> gmasdac -- : Return Defendant Account Impositions
+gmasdac --> getapi -- : Return Defendant Account Impositions (XML)
+getapi -> getapi : Convert XML to JSON
+end
+getapi --> viewScreen --: Return data (JSON)
+viewScreen -> viewScreen : Display data
+getapi --
+@enduml
