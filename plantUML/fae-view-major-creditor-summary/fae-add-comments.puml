@@ -1,0 +1,34 @@
+@startuml
+actor "User" as user
+participant "View account \n(at a glance)" as viewAccount <<UI Page>> #lightskyblue
+participant "Add Comments" as comments <<UI Page>> #lightskyblue
+participant "Update Major Creditor Account" as updateAccountApi <<Fines API>> #lightgreen
+database "Fines DB" as db #lightgreen
+participant "GMAS DAC" as gmasdac <<API>> #yellow
+database "Update Major Creditor Account" as dblegacy <<GOB SP>> #yellow
+
+
+user ->  viewAccount ++ : Click Comments \n'change' link
+viewAccount -> comments ++ :Navigates to
+viewAccount --
+user ->  comments : Inputs data
+user ->  comments : Clicks 'Save Comments' button
+comments --> updateAccountApi ++: Update comments
+alt Opal Mode
+updateAccountApi --> db ++: Update comments (JPA)
+db --> updateAccountApi: Return updated data
+db --
+else Legacy Mode
+updateAccountApi --> gmasdac ++: Update comments (JSON)
+gmasdac -> gmasdac : Convert JSON to XML
+gmasdac --> dblegacy ++: Update comments (XML)
+dblegacy --> gmasdac --: Return updated data (XML)
+gmasdac --> updateAccountApi --: Return updated data (XML)
+updateAccountApi -> updateAccountApi : Convert XML to JSON
+end
+updateAccountApi --> comments : Return updated data (JSON)
+updateAccountApi --
+comments -> viewAccount ++: Navigates to
+deactivate comments
+
+@enduml
