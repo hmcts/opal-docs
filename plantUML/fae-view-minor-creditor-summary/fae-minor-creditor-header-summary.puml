@@ -1,0 +1,44 @@
+@startuml
+actor "User" as user
+participant "Account Details (Minor Creditor)" as account <<UI Page>> #lightskyblue
+participant "Get Minor Creditor Account \nHeader Summary" as getHeaderApi <<Fines API>> #lightgreen
+participant "Get Minor Creditor Account \nAt A Glance" as getAAGApi <<Fines API>> #lightgreen
+database "Fines DB" as db #lightgreen
+participant "GMAS DAC" as gmasDac <<API>> #yellow
+database "Get Minor Creditor Account \nHeader Summary" as getHeaderGobSP <<GOB SP>> #yellow
+database "Get Minor Creditor Account \nAt A Glance" as getAAGGobSp <<GOB SP>> #yellow
+
+user ->  account ++ :Navigates to
+account --> getHeaderApi ++: Get header data
+alt Opal Mode
+  getHeaderApi --> db ++ : Get header data (JPA)
+  db --> getHeaderApi : Return header data
+  deactivate db
+else Legacy Mode
+  getHeaderApi --> gmasDac ++ : Get Minor Creditor Account Header Summary
+  gmasDac --> getHeaderGobSP ++ : Invoke Stored Procedure
+  getHeaderGobSP --> gmasDac -- : Return header data
+  gmasDac --> getHeaderApi -- : Return header data
+  deactivate gmasDac
+end
+getHeaderApi --> account : Return header data (JSON)
+deactivate getHeaderApi
+account -> account : Display header
+
+account --> getAAGApi ++: Get At a Glance data
+alt Opal Mode
+getAAGApi --> db ++ : Get At a Glance data (JPA)
+db --> getAAGApi : Return At a Glance data
+deactivate db
+else Legacy Mode
+  getAAGApi --> gmasDac ++ : Get Minor Creditor At A Glance
+  gmasDac --> getAAGGobSp ++ : Invoke Stored Procedure
+  getAAGGobSp --> gmasDac -- : Return At a Glance data
+  gmasDac --> getAAGApi -- : Return At a Glance data
+  deactivate gmasDac
+end
+getAAGApi --> account : Return At a Glance data (JSON)
+deactivate getAAGApi
+account -> account : Display At a Glance tab
+
+@enduml
