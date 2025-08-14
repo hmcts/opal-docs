@@ -1,0 +1,25 @@
+@startuml
+!include <C4/C4_Container>
+Person(user, "Opal User")
+System_Boundary(client, "Client Device"){
+  Container(spa, "Fines FE (Client)", "Angular SPA")
+}
+System_Boundary(server, "Opal Server-Side"){
+  Container(node, "Fines FE (Server)", "NodeJS Middleware", "Orchestrates the Login Flow")
+  Container(users, "User Service", "Spring Boot App", "APIs for User-related processing")
+  ContainerDb(usersdb, "User Database", "PostgreSQL", "Holds the data for the User domain")
+  Container(fines, "Fines Service", "Spring Boot App", "APIs for Fines-related processing")
+  ContainerDb(finesdb, "Fines Database", "PostgreSQL", "Holds the data for the Fines domain")
+}
+System_Boundary(azure, "Shared"){
+    Container(aad, "Azure AD")
+}
+Rel(user, spa, "Uses")
+Rel(spa, node, "")
+Rel(node, users, "Calls", "REST/JSON")
+Rel(node, fines, "Calls", "REST/JSON")
+Rel(spa, aad, "User Authentication", "Front Channel")
+Rel(node, aad, "Token Exchange", "Back Channel")
+Rel(users, usersdb, "Data", "JPA")
+Rel(fines, finesdb, "Data", "JPA")
+@enduml

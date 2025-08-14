@@ -1,0 +1,39 @@
+@startuml "AS-IS Login Flow - Happy Path"
+actor "Opal User" as user
+participant "Angular SPA" as finesspa <<Fines FE>> #LightSkyBlue
+participant "NodeJS" as finesnode <<Fines FE>> #LightSkyBlue
+database "Redis Session Store" as redis #LightSkyBlue
+participant "Authorization Endpoint" as oidcauth <<AAD>> #Yellow
+participant "Login or Refresh" as loginapi <<Fines API>> #LightGreen
+database "Opal Key Vault" as opalkv <<Azure Key Vault>> #LightGreen
+participant "Handle OAuth Code" as codeapi <<Fines API>> #LightGreen
+database "Fines Database" as finesdb #LightGreen
+participant "Token Endpoint" as oidctoken <<AAD>> #Yellow
+
+user -> finesspa ++ : Page request (no valid session cookie)
+finesspa -> finesnode -- : Trigger Login Flow
+activate finesnode
+finesnode -> loginapi ++ : Request Redirect URI
+loginapi -> opalkv ++ : Retrieve AAD details
+loginapi <- opalkv -- : AAD details
+loginapi -> loginapi : Construct Redirect URI - including Authentication Request
+finesnode <- loginapi -- : Redirect URI
+user <- finesnode -- : Redirect (302) with Authentication Request
+user -> oidcauth ++ : Authentication Request
+opt No existing Authentication
+  user <- oidcauth : Request Credentials
+  user -> oidcauth : Provide Valid Credentials
+end
+user <- oidcauth -- : Redirect (302) back with Authorization Code
+user -> finesnode ++ : Authorization Code
+finesnode -> codeapi ++ : Authroization Code
+codeapi -> oidctoken ++ : Authroization Code
+codeapi <- oidctoken -- : ID Token and Access Token
+codeapi -> finesdb ++ : Read User State (JPA)
+codeapi <- finesdb -- : User State
+finesnode <- codeapi -- : User State (JSON) and Access Token
+finesnode -> redis : Store Access Token against Session Cookie
+user <- finesnode -- : Redirect to requested page with valid Session Cookie
+user -> finesspa ++ : Page request (valid Session Cookie)
+finesspa -> finesspa : Display page
+@enduml
