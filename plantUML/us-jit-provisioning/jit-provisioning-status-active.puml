@@ -1,0 +1,33 @@
+@startuml "User exists - status is active"
+actor "Opal User" as user
+participant "Angular SPA" as finesspa <<Fines FE>> #LightSkyBlue
+participant "NodeJS" as finesnode <<Fines FE>> #LightSkyBlue
+database "Opal Key Vault" as opalkv <<Azure Key Vault>> #LightSkyBlue
+database "Redis Session Store" as redis #LightSkyBlue
+participant "Authorization Endpoint" as oidcauth <<AAD>> #Yellow
+participant "Token Endpoint" as oidctoken <<AAD>> #Yellow
+participant "Get User State" as userstateapi <<User API>> #LightGreen
+database "User Database" as userdb #LightGreen
+
+user -> finesspa ++ : Page request (no valid session cookie)
+finesspa -> finesnode -- : Trigger Login Flow
+activate finesnode
+user <- finesnode -- : Redirect (302) with Authentication Request
+user -> oidcauth ++ : Authentication Request
+opt No existing Authentication
+  user <- oidcauth : Request Credentials
+  user -> oidcauth : Provide Valid Credentials
+end
+user <- oidcauth -- : Redirect (302) back with Authorization Code
+user -> finesnode ++ : Authorization Code
+finesnode -> oidctoken ++ : Authroization Code
+finesnode <- oidctoken -- : ID Token and Access Token
+finesnode -> redis : Store Access Token against Session Cookie
+finesnode -> userstateapi ++ : Request User State with Access Token
+userstateapi -> userdb ++ : Attempt to Read User State (JPA)
+userstateapi <- userdb -- :
+finesnode <- userstateapi -- : User State (JSON) - status is 'active'
+user <- finesnode -- : Redirect to Dashboard page with valid Session Cookie
+user -> finesspa ++ : Page request (valid Session Cookie)
+finesspa -> finesspa : Display Dashboard page (based on permissions)
+@enduml
