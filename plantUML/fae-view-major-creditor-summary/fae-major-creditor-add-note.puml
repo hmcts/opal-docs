@@ -1,0 +1,29 @@
+@startuml
+actor "User" as user
+participant "Account Details" as account <<UI Page>> #lightskyblue
+participant "Add Note" as addNote <<UI Page>> #lightskyblue
+participant "Add Note" as addNoteApi <<Fines API>> #lightgreen
+database "Fines DB" as db #lightgreen
+participant "GMAS DAC" as gmasDac <<API>> #yellow
+database "Add Notes" as addNoteGobSP <<GOB SP>> #yellow
+
+user -> account ++ : Click <b>Add account note</b> button
+account --> addNote -- : Navigate to
+activate addNote
+user --> addNote : Enter note text and click <b>Save note</b> button
+addNote --> addNoteApi ++: Note (JSON)
+alt Opal Mode
+  addNoteApi --> db ++ : Add Note (JPA)
+  db --> addNoteApi -- : Note ID
+else Legacy Mode
+  addNoteApi --> gmasDac ++ : Add Note (JSON)
+  gmasDac --> gmasDac : Transform JSON to XML
+  gmasDac --> addNoteGobSP ++ : Invoke Stored Procedure (XML)
+  addNoteGobSP --> gmasDac -- : Note ID
+  gmasDac --> addNoteApi -- : Note ID (XML)
+end
+addNoteApi --> addNote -- : Note ID (JSON)
+addNote --> account -- : Navigate back
+activate account
+
+@enduml

@@ -1,0 +1,29 @@
+@startuml
+actor "User" as user
+participant "Account Details (At A Glance tab)" as account <<UI Page>> #lightskyblue
+participant "Remove Payment Hold" as removeHold <<UI Page>> #lightskyblue
+participant "Update Minor Creditor Account" as updateApi <<Fines API>> #lightgreen
+database "Fines DB" as db #lightgreen
+participant "GMAS DAC" as gmasDac <<API>> #yellow
+database "Update Minor Creditor Account" as getHeaderGobSP <<GOB SP>> #yellow
+
+user -> account ++ : Click <b>Remove payment hold</b> link
+account --> removeHold -- : Navigate to
+activate removeHold
+user --> removeHold : Click <b>Yes - remove hold</b> button
+removeHold --> updateApi ++: payout hold = false (JSON)
+alt Opal Mode
+  updateApi --> db ++ : Update Minor Creditor Account (JPA)
+  db --> updateApi --
+else Legacy Mode
+  updateApi --> gmasDac ++ : Update Minor Creditor Account (JSON)
+  gmasDac --> gmasDac : Transform JSON to XML
+  gmasDac --> getHeaderGobSP ++ : Invoke Stored Procedure (XML)
+  getHeaderGobSP --> gmasDac --
+  gmasDac --> updateApi --
+end
+updateApi --> removeHold --
+removeHold --> account -- : Navigate back
+activate account
+
+@enduml

@@ -1,0 +1,29 @@
+@startuml
+actor "User" as user
+participant "Account Details (At A Glance tab)" as account <<UI Page>> #lightskyblue
+participant "Add Payment Hold" as addHold <<UI Page>> #lightskyblue
+participant "Update Minor Creditor Account" as updateApi <<Fines API>> #lightgreen
+database "Fines DB" as db #lightgreen
+participant "GMAS DAC" as gmasDac <<API>> #yellow
+database "Update Minor Creditor Account" as getHeaderGobSP <<GOB SP>> #yellow
+
+user -> account ++ : Click <b>Add payment hold</b> link
+account --> addHold -- : Navigate to
+activate addHold
+user --> addHold : Click <b>Yes - add hold</b> button
+addHold --> updateApi ++: payout hold = true (JSON)
+alt Opal Mode
+  updateApi --> db ++ : Update Minor Creditor Account (JPA)
+  db --> updateApi --
+else Legacy Mode
+  updateApi --> gmasDac ++ : Update Minor Creditor Account (JSON)
+  gmasDac --> gmasDac : Transform JSON to XML
+  gmasDac --> getHeaderGobSP ++ : Invoke Stored Procedure (XML)
+  getHeaderGobSP --> gmasDac --
+  gmasDac --> updateApi --
+end
+updateApi --> addHold --
+addHold --> account -- : Navigate back
+activate account
+
+@enduml
