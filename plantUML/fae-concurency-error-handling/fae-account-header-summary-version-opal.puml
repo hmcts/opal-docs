@@ -1,0 +1,54 @@
+@startuml
+actor "User" as user
+participant "View account" as viewAccount <<UI Page>> #lightskyblue
+participant "Get Defendant Account \nHeader Summary" as getHeaderApi <<Fines API>> #lightgreen
+participant "Get Defendant Account \nAt A Glance" as getAAGApi <<Fines API>> #lightgreen
+database "Fines DB" as db #lightgreen
+
+user ->  viewAccount ++ : Navigates to
+
+group Initial fetch
+  viewAccount --> getHeaderApi ++: Get header data
+  getHeaderApi --> db ++ : Get header data (JPA)
+  db --> getHeaderApi : Return header data
+  deactivate db
+  getHeaderApi --> viewAccount : Return header \n& account version (ETag)
+  deactivate getHeaderApi
+  viewAccount -> viewAccount : Display header\n & store account version as <b>base version</b>
+  viewAccount --> getAAGApi ++: Get At a Glance data
+  getAAGApi --> db ++ : Get At a Glance data (JPA)
+  db --> getAAGApi : Return AAG data
+  deactivate db
+  getAAGApi --> viewAccount : Return AAG \n& account version (ETag)
+  deactivate getAAGApi
+end
+viewAccount -> viewAccount : Display "At a Glance" tab
+opt base version != account version
+  viewAccount -> viewAccount : Show "Refresh" banner
+  note over viewAccount
+    Banner shows a Refresh button.
+  end note
+    user -> viewAccount : Click Refresh
+    group Refresh fetch (re-run APIs)
+      viewAccount --> getHeaderApi ++: Get header data
+      getHeaderApi --> db ++ : Get header data (JPA)
+      db --> getHeaderApi : Return header data
+      deactivate db
+      getHeaderApi --> viewAccount : Return header\n& new account version
+      deactivate getHeaderApi
+      viewAccount -> viewAccount : Display header\n & store account version as <b>base version</b>
+      viewAccount --> getAAGApi ++: Get AAG data
+      getAAGApi --> db ++ : Get AAG data (JPA)
+      db --> getAAGApi : Return AAG data
+      deactivate db
+      getAAGApi --> viewAccount : Return AAG \n& account version
+      deactivate getAAGApi
+    end
+    viewAccount -> viewAccount : Show "Confirm" banner
+      note over viewAccount
+        Banner shows confirmation and Dismiss button.
+      end note
+    viewAccount -> viewAccount : Display "At a Glance" tab
+end
+
+@enduml
