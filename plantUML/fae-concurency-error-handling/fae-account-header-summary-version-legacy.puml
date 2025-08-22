@@ -2,7 +2,7 @@
 actor "User" as user
 participant "View account" as viewAccount <<UI Page>> #lightskyblue
 participant "Get Defendant Account \nHeader Summary" as getHeaderApi <<Fines API>> #lightgreen
-participant "Get Defendant Account \nAt A Glance" as getAAGApi <<Fines API>> #lightgreen
+participant "Get Defendant Account \nParty" as getAAGApi <<Fines API>> #lightgreen
 database "GMAS DAC" as legacyApi <<Legacy API>> #yellow
 database "GOB" as db <<Legacy SP>>#yellow
 
@@ -17,15 +17,19 @@ group Initial fetch
   getHeaderApi --> viewAccount -- : Return header data\n& account version (ETag)
   viewAccount -> viewAccount : Display header\n & store account version as <b>base version</b>.
 
-
-  viewAccount --> getAAGApi ++: Get At a Glance data
-  getAAGApi --> legacyApi ++ : Get At a Glance data
-  legacyApi --> db ++ : Get AAG data
-  db --> legacyApi -- : Return AAG data \n& account version
-  legacyApi --> getAAGApi -- : Return AAG data \n& account version
-  getAAGApi --> viewAccount -- : Return AAG data\n& account version (ETag)
 end
-viewAccount -> viewAccount : Display "At a Glance" tab
+
+group Switch Tab
+user -> viewAccount :Navigates to "Defendant" tab
+    viewAccount --> getAAGApi ++: Get Party data
+    getAAGApi --> legacyApi ++ : Get Party data
+    legacyApi --> db ++ : Get Party data
+    db --> legacyApi -- : Return Party data \n& account version
+    legacyApi --> getAAGApi -- : Return Party data \n& account version
+    getAAGApi --> viewAccount -- : Return Party data\n& account version (ETag)
+    viewAccount -> viewAccount : Display "Defendant" tab
+end
+
 opt base version != account version
   viewAccount -> viewAccount : Show "Refresh" banner
   note over viewAccount
@@ -41,19 +45,18 @@ opt base version != account version
   getHeaderApi --> viewAccount -- : Return header data\n& account version (ETag)
   viewAccount -> viewAccount : Display header\n & store account version as <b>base version</b>.
 
-
-  viewAccount --> getAAGApi ++: Get At a Glance data
-  getAAGApi --> legacyApi ++ : Get At a Glance data
-  legacyApi --> db ++ : Get AAG data
-  db --> legacyApi -- : Return AAG data \n& account version
-  legacyApi --> getAAGApi -- : Return AAG data \n& account version
-  getAAGApi --> viewAccount -- : Return AAG data\n& account version (ETag)
+    viewAccount --> getAAGApi ++: Get Party data
+    getAAGApi --> legacyApi ++ : Get Party data
+    legacyApi --> db ++ : Get Party data
+    db --> legacyApi -- : Return Party data \n& account version
+    legacyApi --> getAAGApi -- : Return Party data \n& account version
+    getAAGApi --> viewAccount -- : Return Party data\n& account version (ETag)
+    viewAccount -> viewAccount : Display "Defendant" tab
 end
     viewAccount -> viewAccount : Show "Confirm" banner
       note over viewAccount
         Banner shows confirmation and Dismiss button.
       end note
-    viewAccount -> viewAccount : Display "At a Glance" tab
 end
 
 @enduml
