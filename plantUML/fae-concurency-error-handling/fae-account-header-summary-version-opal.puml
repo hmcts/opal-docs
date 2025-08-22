@@ -2,7 +2,7 @@
 actor "User" as user
 participant "View account" as viewAccount <<UI Page>> #lightskyblue
 participant "Get Defendant Account \nHeader Summary" as getHeaderApi <<Fines API>> #lightgreen
-participant "Get Defendant Account \nAt A Glance" as getAAGApi <<Fines API>> #lightgreen
+participant "Get Defendant Account \nParty" as getPartyApi <<Fines API>> #lightgreen
 database "Fines DB" as db #lightgreen
 
 user ->  viewAccount ++ : Navigates to
@@ -15,14 +15,15 @@ group Initial fetch
   getHeaderApi --> viewAccount : Return header \n& account version (ETag)
   deactivate getHeaderApi
   viewAccount -> viewAccount : Display header\n & store account version as <b>base version</b>
-  viewAccount --> getAAGApi ++: Get At a Glance data
-  getAAGApi --> db ++ : Get At a Glance data (JPA)
-  db --> getAAGApi : Return AAG data
-  deactivate db
-  getAAGApi --> viewAccount : Return AAG \n& account version (ETag)
-  deactivate getAAGApi
 end
-viewAccount -> viewAccount : Display "At a Glance" tab
+group Switch Tab
+user -> viewAccount :Navigates to "Defendant" tab
+    viewAccount --> getPartyApi ++: Get Party data
+    getPartyApi --> db ++ : Get Party data (JPA)
+    db --> getPartyApi --: Return Party data &\n account version
+    getPartyApi --> viewAccount -- : Return Party data\n& account version (ETag)
+    viewAccount -> viewAccount : Display "Defendant" tab
+end
 opt base version != account version
   viewAccount -> viewAccount : Show "Refresh" banner
   note over viewAccount
@@ -32,23 +33,21 @@ opt base version != account version
     group Refresh fetch (re-run APIs)
       viewAccount --> getHeaderApi ++: Get header data
       getHeaderApi --> db ++ : Get header data (JPA)
-      db --> getHeaderApi : Return header data
+      db --> getHeaderApi : Return header data &\n account version
       deactivate db
-      getHeaderApi --> viewAccount : Return header\n& new account version
+      getHeaderApi --> viewAccount : Return header\n& account version
       deactivate getHeaderApi
       viewAccount -> viewAccount : Display header\n & store account version as <b>base version</b>
-      viewAccount --> getAAGApi ++: Get AAG data
-      getAAGApi --> db ++ : Get AAG data (JPA)
-      db --> getAAGApi : Return AAG data
-      deactivate db
-      getAAGApi --> viewAccount : Return AAG \n& account version
-      deactivate getAAGApi
+      viewAccount --> getPartyApi ++: Get Party data
+      getPartyApi --> db ++ : Get Party data (JPA)
+      db --> getPartyApi --: Return Party data &\n account version
+      getPartyApi --> viewAccount --: Return Party \n& account version (ETag)
+      viewAccount -> viewAccount : Display "Defendant" tab
     end
     viewAccount -> viewAccount : Show "Confirm" banner
       note over viewAccount
         Banner shows confirmation and Dismiss button.
       end note
-    viewAccount -> viewAccount : Display "At a Glance" tab
 end
 
 @enduml
