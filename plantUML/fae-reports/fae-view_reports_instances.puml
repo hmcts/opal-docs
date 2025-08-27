@@ -1,0 +1,128 @@
+@startuml
+actor "Inputter" as user
+participant "View Reports" as viewReports <<UI Page>> #lightskyblue
+participant "View Report Instances" as viewReportsInstances <<UI Page>> #lightskyblue
+participant "Select Business Unit" as selectBusinessUnit <<UI Page>> #lightskyblue
+participant "Create Report Instance" as createReportInstancePage <<UI Page>> #lightskyblue
+participant "View report instance" as viewReportsInstance <<UI Page>> #lightskyblue
+
+
+participant "Get Report Types" as getReportTypes <<Fines API>> #lightgreen
+participant "Get Report Type" as getReportType <<Fines API>> #lightgreen
+participant "Get Report Instances" as getReportInstances <<Fines API>> #lightgreen
+participant "Create Report Instance" as createReportInstance <<Fines API>> #lightgreen
+participant "Download Report" as getReportInstanceDownload <<Fines API>> #lightgreen
+participant "Get Report Instance Summary" as getReportInstanceSummary <<Fines API>> #lightgreen
+
+participant "Report Azure blob store" as reportBlobStore <<Azure Blob Store>> #lightgreen
+
+
+database "Fines Database" as db #lightgreen
+queue "Report generation queue" as reportQueue <<Queue>> #lightgreen
+
+
+
+user -> viewReports ++ : Navigate to View Reports
+viewReports --> getReportTypes++ : Get the report types the user has access too
+getReportTypes -> db ++ : Retrieve the reports types (JPA)
+getReportTypes <-- db -- : Report records
+viewReports <-- getReportTypes-- : Report Records (JSON)
+
+user --> viewReports : Selects a report type to view
+viewReports -> viewReportsInstances ++ : Route to view report instances
+viewReportsInstances --> getReportInstances++ : Fetch the report instances for the selected report type (Only returning those the user has access to)
+getReportInstances -> db ++ : Retrieve the reports instances (JPA)
+getReportInstances <-- db -- : Report instance records
+viewReportsInstances <-- getReportInstances-- : Report Instance Records (JSON)
+
+opt Download Report
+user -> viewReportsInstances : Clicks download on a report
+viewReportsInstances -> getReportInstanceDownload ++ : Fetch the report instance download (Based on accept header + supported formats returned in the Get Report Instances API)
+getReportInstanceDownload -> db ++ : Retrieve the report instance to be downloaded (JPA)
+getReportInstanceDownload <-- db -- : Report instance details
+getReportInstanceDownload -> reportBlobStore ++ : Fetch the report data from Azure Blob Store
+getReportInstanceDownload <-- reportBlobStore -- : Report Instance Download (BLOB)
+note right of getReportInstanceDownload
+The report instance download is returned as a BLOB from the Azure Blob Store.
+The application will convert the JSON from the blob store into the appropriate format based on the accept header.
+end note
+viewReportsInstances <-- getReportInstanceDownload -- : Report Download (Binary data)
+user <-- viewReportsInstances: The Downloaded the report instance
+
+end
+
+opt View summary of report instance
+user -> viewReportsInstances : Clicks on a report instance to view summary
+viewReportsInstances -> viewReportsInstance ++ : Route to view report instance
+viewReportsInstance -> getReportInstanceSummary ++ : Fetch the report instance summary
+getReportInstanceSummary -> db ++ : Retrieve the report instance details (JPA)
+getReportInstanceSummary <-- db -- : Report instance details
+getReportInstanceSummary -> db ++ : Retrieve the report details (JPA)
+getReportInstanceSummary <-- db -- : Report instance details
+viewReportsInstance <-- getReportInstanceSummary  -- : Report summary (JSON)
+user --> viewReportsInstance : Clicks back button
+viewReportsInstance -> viewReportsInstances --: Route back to view report instances
+end
+
+
+opt Create new report instance
+user -> viewReportsInstances : Clicks create report
+
+alt User has multiple business units
+viewReportsInstances -> selectBusinessUnit ++ : Route to select business unit
+user -> selectBusinessUnit : Selects business unit
+viewReportsInstances <- selectBusinessUnit -- : Store business unit in context
+
+else User has a single business unit
+viewReportsInstances -> viewReportsInstances : Store business unit in context
+end
+
+
+viewReportsInstances -> createReportInstancePage ++ : Route to create report instance
+
+note right of getReportType
+The report type details are fetched to support the dynamic create of the report creation flow
+end note
+createReportInstancePage -> getReportType ++ : Fetch the report type details
+getReportType -> db ++ : Retrieve the report type details (JPA)
+getReportType <-- db -- : Report type details
+createReportInstancePage <-- getReportType -- : Report type details (JSON)
+
+
+note right of createReportInstancePage
+Using the generic parameterised from the report type api call generate the parameterised page.
+If a bespoke is set (The report API has null in genericParameters and is_bespoke_journey = true) then the bespoke page is rendered and must be manually scripted.
+end note
+createReportInstancePage -> createReportInstancePage: Render report parameter page from the get report type response
+
+user -> createReportInstancePage : Fills in report parameters and clicks submit
+createReportInstancePage -> createReportInstance ++ : Create the report
+createReportInstance -> db ++ : Create the report instance (JPA)
+createReportInstance <-- db -- : Report instance details
+createReportInstance -> reportQueue ++ : Add report instance to the report generation queue
+createReportInstance <-- reportQueue --: Report added to generation queue
+note right of reportQueue
+The report instance is added to the report generation queue for processing.
+The report generation process will handle the creation of the report and store it in the Azure Blob Store
+and update the report instance status in the database.
+end note
+
+createReportInstancePage <-- createReportInstance : Report instance created successfully
+createReportInstancePage -> viewReportsInstance ++ : Route to view report instance
+viewReportsInstance -> getReportInstanceSummary ++ : Fetch the report instance summary
+getReportInstanceSummary -> db ++ : Retrieve the report instance details (JPA)
+getReportInstanceSummary <-- db -- : Report instance details
+getReportInstanceSummary -> db ++ : Retrieve the report details (JPA)
+getReportInstanceSummary <-- db -- : Report instance details
+viewReportsInstance <-- getReportInstanceSummary  -- : Report summary (JSON)
+user --> viewReportsInstance : Clicks back button
+viewReportsInstance -> viewReportsInstances --: Route back to view report instances
+
+
+end
+
+
+
+user --> viewReportsInstances : Clicks back button
+viewReportsInstances -> user --: Route back to view report instances
+@enduml

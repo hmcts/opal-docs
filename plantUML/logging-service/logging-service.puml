@@ -1,0 +1,46 @@
+@startuml
+actor "Inputter" as user
+
+
+participant "Any Opal Service" as anyService <<Any API>> #lightgreen
+
+queue "Logging queue" as loggingQueue <<Queue>> #lightgreen
+participant "Logging Api" as loggingApi <<Logging Service>> #lightgreen
+participant "Logging Service" as loggingService <<Logging Service>> #lightgreen
+
+database "Logging Database" as db #lightgreen
+
+
+user -> anyService ++ : Calls any API
+note right of anyService
+Process the request as normal but when ever personal data is accessed
+Make a call to the logging queue
+end note
+alt Accesses personal data
+    loop For all personal data accessed
+        anyService -> loggingQueue ++ : Log personal data access
+        anyService <- loggingQueue -- : Access log confirmation
+    end loop
+end
+anyService -> user  -- : Returns API response
+
+alt Asynchronous call
+    note right of loggingQueue
+        Async Queue detects and processed any new log entries.
+    end note
+    loggingQueue -> loggingService ++ : Picks up new queue entries
+    loggingService -> db ++ : Store log entry (JPA)
+    loggingService <- db -- : Log entry confirmation
+    loggingService -> loggingQueue -- : Acknowledge log entry processed
+else Synchronous call
+    note right of anyService
+        Sync API call to the logging api to notify of new log entry
+    end note
+    anyService -> loggingApi ++ : Notify logging api of new log entry
+    loggingApi -> loggingService ++ : Process log entry request
+    loggingService -> db ++ : Store log entry (JPA)
+    loggingService <- db -- : Log entry confirmation
+    loggingService -> loggingApi -- : Log entry confirmation
+    loggingApi -> anyService -- : Log entry processed confirmation
+end
+@enduml
