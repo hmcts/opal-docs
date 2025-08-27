@@ -1,0 +1,24 @@
+
+@startuml
+!include <C4/C4_Container>
+
+title
+<b>Logging Service Components</b>
+end title
+
+
+System_Boundary(server, "Opal Server-Side"){
+ Container(loggingLibrary, "Opal Logging Library", "Java Library", "Library to be used by any service that needs to log personal data operations")
+  Container(opalService, "Opal service", "Spring Boot App", "Any opal service that processes personal data")
+  Container(loggingService, "Logging Service", "Spring Boot App", "APIs for Logging-related processing")
+  ContainerDb(loggingDb, "Logging Database", "PostgreSQL", "Holds the data for the logging service")
+  SystemQueue(loggingQueue, "Azure Service Bus", "Queue for logs")
+
+}
+Rel(opalService, loggingLibrary, "Uses", "Java Library")
+Rel(loggingLibrary, loggingQueue, "Produce - Add PDPO to logging queue", "Azure Service Bus")
+
+Rel(loggingService, loggingQueue, "Consume - Log messages", "Azure Service Bus")
+Rel(loggingService, loggingDb, "Data", "JPA")
+
+@enduml
