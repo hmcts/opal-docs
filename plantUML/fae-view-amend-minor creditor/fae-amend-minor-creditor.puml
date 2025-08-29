@@ -2,22 +2,22 @@
 actor User
 participant "Account Details \n(Creditor Tab)" as viewScreen <<UI Page>> #lightskyblue
 participant "Amend Minor Creditor\nDetails" as changeScreen <<UI Page>> #lightskyblue
-participant "Replace Minor Creditor\nAccount Party" as putapi <<Fines API>> #lightgreen
+participant "Update Minor Creditor\nAccount" as putapi <<Fines API>> #lightgreen
 database "Fines Database" as db #lightgreen
 participant "GMAS DAC" as gmasdac <<API>> #yellow
-database "Replace Minor Creditor\nAccount Party" as dblegacy <<GOB SP>> #yellow
+database "Update Minor Creditor\nAccount" as dblegacy <<GOB SP>> #yellow
 
 User -> viewScreen ++ : Clicks 'Change' link
 viewScreen --> changeScreen ++--: Navigate to Change screen
 User -> changeScreen : Makes changes and submits
-changeScreen --> putapi ++ : Minor Creditor & Party data (JSON)
+changeScreen --> putapi ++ : Minor Creditor & data (JSON)
 alt Opal Mode
-putapi --> db ++ : Replace data (JPA)
+putapi --> db ++ : Update data (JPA)
 db --> putapi -- : Return data (JSON)
 else Legacy Mode
-putapi --> gmasdac ++ : Replace Minor Creditor\nAccount Party (JSON)
+putapi --> gmasdac ++ : Update Minor Creditor\nAccount (JSON)
 gmasdac -> gmasdac: Convert JSON to XML
-gmasdac --> dblegacy ++ : Replace Minor Creditor\nAccount Party (SP)
+gmasdac --> dblegacy ++ : Update Minor Creditor\nAccount  (SP)
 dblegacy --> gmasdac -- : Return data
 gmasdac --> putapi -- : Return data (XML)
 putapi -> putapi : Convert XML to JSON

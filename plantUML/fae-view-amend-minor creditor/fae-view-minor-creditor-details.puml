@@ -1,22 +1,22 @@
 @startuml
 actor User
 participant "Account Details \n(Creditor Tab)" as viewScreen <<UI Page>> #lightskyblue
-participant "Get Minor Creditor Account Party" as getapi <<Fines API>> #lightgreen
+participant "Get Minor Creditor Account" as getapi <<Fines API>> #lightgreen
 database "Fines Database" as db #lightgreen
 participant "GMAS DAC" as gmasdac <<API>> #yellow
-database "Get Minor Creditor Account Party" as dblegacy <<GOB SP>> #yellow
+database "Get Minor Creditor Account" as dblegacy <<GOB SP>> #yellow
 
 User -> viewScreen ++ : Navigates to tab
-viewScreen --> getapi ++ : Minor Creditor Account ID & Party ID
+viewScreen --> getapi ++ : Minor Creditor Account ID
 alt Opal Mode
 getapi --> db ++ : Get data (JPA)
 db --> getapi -- : Return data (JSON)
 else Legacy Mode
-getapi --> gmasdac ++ : Get Minor Creditor Account Party (JSON)
+getapi --> gmasdac ++ : Get Minor Creditor Account (JSON)
 gmasdac -> gmasdac: Convert JSON to XML
-gmasdac --> dblegacy ++ : Get Minor Creditor Account Party (SP)
-dblegacy --> gmasdac -- : Return Minor Creditor Account Party
-gmasdac --> getapi -- : Return Minor Creditor Account Party (XML)
+gmasdac --> dblegacy ++ : Get Minor Creditor Account (SP)
+dblegacy --> gmasdac -- : Return Minor Creditor Account
+gmasdac --> getapi -- : Return Minor Creditor Account (XML)
 getapi -> getapi : Convert XML to JSON
 end
 getapi --> viewScreen --: Return data (JSON)
