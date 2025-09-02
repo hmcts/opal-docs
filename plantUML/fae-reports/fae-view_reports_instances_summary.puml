@@ -1,0 +1,17 @@
+@startuml
+actor "Inputter" as user
+participant "View report instance" as viewReportsInstance <<UI Page>> #lightskyblue
+participant "Get Report Instance Summary" as getReportInstanceSummary <<Fines API>> #lightgreen
+
+database "Fines Database" as db #lightgreen
+
+user -> viewReportsInstance ++ : Clicks on report instance date on report instances page
+viewReportsInstance -> getReportInstanceSummary ++ : Fetch the report instance summary
+getReportInstanceSummary -> db ++ : Retrieve the report instance details (JPA)
+getReportInstanceSummary <-- db -- : Report instance details
+getReportInstanceSummary -> db ++ : Retrieve the report details (JPA)
+getReportInstanceSummary <-- db -- : Report instance details
+viewReportsInstance <-- getReportInstanceSummary  -- : Report summary (JSON)
+user <-- viewReportsInstance : View the report instance summary
+
+@enduml

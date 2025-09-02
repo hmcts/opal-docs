@@ -1,0 +1,13 @@
+@startuml
+actor "Inputter" as user
+participant "View Reports" as viewReports <<UI Page>> #lightskyblue
+participant "Get Report Types" as getReportTypes <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+user -> viewReports ++ : Navigate to View Reports
+viewReports --> getReportTypes++ : Get the report types the user has access too
+getReportTypes -> db ++ : Retrieve the reports types (JPA)
+getReportTypes <-- db -- : Report records
+viewReports <-- getReportTypes-- : Report Records (JSON)
+user <-- viewReports : View Reports page with report types
+@enduml

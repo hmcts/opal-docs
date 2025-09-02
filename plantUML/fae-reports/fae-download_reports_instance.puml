@@ -1,0 +1,21 @@
+@startuml
+actor "Inputter" as user
+participant "View Report Instances" as viewReportsInstances <<UI Page>> #lightskyblue
+participant "Download Report" as getReportInstanceDownload <<Fines API>> #lightgreen
+participant "Report Azure blob store" as reportBlobStore <<Azure Blob Store>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+user -> viewReportsInstances ++: Clicks download on a report
+viewReportsInstances -> getReportInstanceDownload ++ : Fetch the report instance download (Based on accept header + supported formats returned in the Get Report Instances API)
+getReportInstanceDownload -> db ++ : Retrieve the report instance to be downloaded (JPA)
+getReportInstanceDownload <-- db -- : Report instance details
+getReportInstanceDownload -> reportBlobStore ++ : Fetch the report data from Azure Blob Store
+getReportInstanceDownload <-- reportBlobStore -- : Report Instance Download (BLOB)
+note right of getReportInstanceDownload
+The report instance download is returned as a BLOB from the Azure Blob Store.
+The application will convert the JSON from the blob store into the appropriate format based on the accept header.
+end note
+viewReportsInstances <-- getReportInstanceDownload -- : Report Download (Binary data)
+user <-- viewReportsInstances: The Downloaded the report instance
+
+@enduml
