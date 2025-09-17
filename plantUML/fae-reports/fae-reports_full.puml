@@ -7,7 +7,7 @@ participant "Select Business Unit" as selectBusinessUnit <<UI Page>> #lightskybl
 participant "Create Report Instance" as createReportInstancePage <<UI Page>> #lightskyblue
 participant "View report instance" as viewReportsInstance <<UI Page>> #lightskyblue
 
-
+participant "Get Business Units" as getBU <<Fines API>> #lightgreen
 participant "Get Report Types" as getReportTypes <<Fines API>> #lightgreen
 participant "Get Report Type" as getReportType <<Fines API>> #lightgreen
 participant "Get Report Instances" as getReportInstances <<Fines API>> #lightgreen
@@ -16,6 +16,8 @@ participant "Download Report" as getReportInstanceDownload <<Fines API>> #lightg
 participant "Get Report Instance Summary" as getReportInstanceSummary <<Fines API>> #lightgreen
 
 participant "Report Azure blob store" as reportBlobStore <<Azure Blob Store>> #lightgreen
+
+participant "Report Service" as reportService <<Fines Service>> #lightgreen
 
 
 database "Fines Database" as db #lightgreen
@@ -35,6 +37,10 @@ viewReportsInstances --> getReportInstances++ : Fetch the report instances for t
 getReportInstances -> db ++ : Retrieve the reports instances (JPA)
 getReportInstances <-- db -- : Report instance records
 viewReportsInstances <-- getReportInstances-- : Report Instance Records (JSON)
+viewReportsInstances --> getBU++ : Fetch the Business Units reference data for filter list
+getBU -> db ++ : Retrieve the Business Units reference data (JPA)
+getBU <-- db -- : Business Units records
+viewReportsInstances <-- getBU-- : Business Units records (JSON)
 
 opt Download Report
 user -> viewReportsInstances : Clicks download on a report
@@ -69,6 +75,11 @@ end
 opt Create new report instance
 user -> viewReportsInstances : Clicks create report
 
+viewReportsInstances -> getBU ++: Get Business Units with permission parameter
+getBU -> db ++ : Retrieve the Business Units (JPA)
+getBU <-- db -- : Business Units records
+viewReportsInstances <-- getBU -- : Business Units records (JSON)
+
 alt User has multiple business units
 viewReportsInstances -> selectBusinessUnit ++ : Route to select business unit
 user -> selectBusinessUnit : Selects business unit
@@ -101,7 +112,7 @@ createReportInstancePage -> createReportInstance ++ : Create the report
 createReportInstance -> db ++ : Create the report instance (JPA)
 createReportInstance <-- db -- : Report instance details
 createReportInstance -> reportQueue ++ : Add report instance to the report generation queue
-createReportInstance <-- reportQueue --: Report added to generation queue
+createReportInstance <-- reportQueue : Report added to generation queue
 note right of reportQueue
 The report instance is added to the report generation queue for processing.
 The report generation process will handle the creation of the report and store it in the Azure Blob Store
@@ -135,6 +146,7 @@ reportService <-- reportBlobStore -- : Confirmation of storage
 reportService -> db ++ : Update report instance status to completed (JPA)
 reportService <-- db -- : Confirmation of update
 reportService --> reportQueue -- : Acknowledge message processed
+reportQueue --
 
 user --> viewReportsInstances : Clicks back button
 viewReportsInstances -> user --: Route back to view report instances

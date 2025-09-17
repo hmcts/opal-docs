@@ -7,7 +7,7 @@ participant "Select Business Unit" as selectBusinessUnit <<UI Page>> #lightskybl
 participant "Create Report Instance" as createReportInstancePage <<UI Page>> #lightskyblue
 participant "View report instance" as viewReportsInstance <<UI Page>> #lightskyblue
 
-
+participant "Get Business Units" as getBU <<Fines API>> #lightgreen
 participant "Get Report Types" as getReportTypes <<Fines API>> #lightgreen
 participant "Get Report Type" as getReportType <<Fines API>> #lightgreen
 participant "Get Report Instances" as getReportInstances <<Fines API>> #lightgreen
@@ -25,6 +25,11 @@ queue "Report generation queue" as reportQueue <<Queue>> #lightgreen
 
 opt Create new report instance
 user -> viewReportsInstances++ : Clicks create report
+
+viewReportsInstances -> getBU ++: Get Business Units with permission parameter
+getBU -> db ++ : Retrieve the Business Units (JPA)
+getBU <-- db -- : Business Units records
+viewReportsInstances <-- getBU -- : Business Units records (JSON)
 
 alt User has multiple business units
 viewReportsInstances -> selectBusinessUnit ++ : Route to select business unit

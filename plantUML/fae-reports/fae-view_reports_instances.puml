@@ -1,6 +1,7 @@
 @startuml
 actor "Inputter" as user
 participant "View Report Instances" as viewReportsInstances <<UI Page>> #lightskyblue
+participant "Get Business Units" as getBusinessUnits <<Fines API>> #lightgreen
 participant "Get Report Instances" as getReportInstances <<Fines API>> #lightgreen
 database "Fines Database" as db #lightgreen
 
@@ -9,6 +10,10 @@ viewReportsInstances --> getReportInstances++ : Fetch the report instances for t
 getReportInstances -> db ++ : Retrieve the reports instances (JPA)
 getReportInstances <-- db -- : Report instance records
 viewReportsInstances <-- getReportInstances-- : Report Instance Records (JSON)
+viewReportsInstances --> getBusinessUnits++ : Fetch the Business Units reference data for filter list
+getBusinessUnits -> db ++ : Retrieve the Business Units reference data (JPA)
+getBusinessUnits <-- db -- : Business Units records
+viewReportsInstances <-- getBusinessUnits-- : Business Units records (JSON)
 user <-- viewReportsInstances : View the report instance for the selected report type
 
 @enduml
