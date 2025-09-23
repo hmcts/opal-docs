@@ -1,11 +1,10 @@
 @startuml
 actor "Inputter" as user
-participant "View Reports" as viewReports <<UI Page>> #lightskyblue
-participant "View Report Instances" as viewReportsInstances <<UI Page>> #lightskyblue
-participant "View Report Instance summary" as viewReportsInstanceSummary <<UI Page>> #lightskyblue
+participant "View Reports" as viewReportsInstances <<UI Page>> #lightskyblue
+
 participant "Select Business Unit" as selectBusinessUnit <<UI Page>> #lightskyblue
-participant "Create Report Instance" as createReportInstancePage <<UI Page>> #lightskyblue
-participant "View report instance" as viewReportsInstance <<UI Page>> #lightskyblue
+participant "Create Report" as createReportInstancePage <<UI Page>> #lightskyblue
+participant "View report" as viewReportsInstance <<UI Page>> #lightskyblue
 
 participant "Get Business Units" as getBU <<Fines API>> #lightgreen
 participant "Get Report Types" as getReportTypes <<Fines API>> #lightgreen

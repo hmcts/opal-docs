@@ -1,6 +1,6 @@
 @startuml
 actor "Inputter" as user
-participant "View report instance" as viewReportsInstance <<UI Page>> #lightskyblue
+participant "View report" as viewReportsInstance <<UI Page>> #lightskyblue
 participant "Get Report Instance Summary" as getReportInstanceSummary <<Fines API>> #lightgreen
 
 database "Fines Database" as db #lightgreen
