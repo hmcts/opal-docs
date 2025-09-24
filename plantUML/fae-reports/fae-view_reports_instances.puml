@@ -3,6 +3,7 @@ actor "Inputter" as user
 participant "View Reports" as viewReportsInstances <<UI Page>> #lightskyblue
 participant "Get Business Units" as getBusinessUnits <<Fines API>> #lightgreen
 participant "Get Report Instances" as getReportInstances <<Fines API>> #lightgreen
+participant "Get Report" as getReport <<Fines API>> #lightgreen
 database "Fines Database" as db #lightgreen
 
 user -> viewReportsInstances ++ : Selects report type from view reports screen
@@ -14,6 +15,10 @@ viewReportsInstances --> getBusinessUnits++ : Fetch the Business Units reference
 getBusinessUnits -> db ++ : Retrieve the Business Units reference data (JPA)
 getBusinessUnits <-- db -- : Business Units records
 viewReportsInstances <-- getBusinessUnits-- : Business Units records (JSON)
+viewReportsInstances -> getReport ++ : Fetch the report details for the selected report type
+getReport -> db ++ : Retrieve the report details (JPA)
+getReport <-- db -- : Report details
+viewReportsInstances <-- getReport -- : Report details (JSON)
 user <-- viewReportsInstances : View the report instance for the selected report type
 
 @enduml

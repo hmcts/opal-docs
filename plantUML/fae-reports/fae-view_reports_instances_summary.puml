@@ -1,12 +1,15 @@
 @startuml
 actor "Inputter" as user
+participant "View Reports" as viewReportsInstances <<UI Page>> #lightskyblue
 participant "View report" as viewReportsInstance <<UI Page>> #lightskyblue
-participant "Get Report Instance Summary" as getReportInstanceSummary <<Fines API>> #lightgreen
+participant "Get Report Instance" as getReportInstanceSummary <<Fines API>> #lightgreen
 
 database "Fines Database" as db #lightgreen
 
-user -> viewReportsInstance ++ : Clicks on report instance date on report instances page
-viewReportsInstance -> getReportInstanceSummary ++ : Fetch the report instance summary
+user -> viewReportsInstances ++ : Clicks on report instance date on report instances page
+viewReportsInstances -> viewReportsInstance ++ : Navigate to report instance page
+viewReportsInstances--
+viewReportsInstance -> getReportInstanceSummary ++ : Fetch the report instance
 getReportInstanceSummary -> db ++ : Retrieve the report instance details (JPA)
 getReportInstanceSummary <-- db -- : Report instance details
 getReportInstanceSummary -> db ++ : Retrieve the report details (JPA)

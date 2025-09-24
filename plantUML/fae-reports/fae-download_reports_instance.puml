@@ -1,7 +1,7 @@
 @startuml
 actor "Inputter" as user
 participant "View Reports" as viewReportsInstances <<UI Page>> #lightskyblue
-participant "Download Report" as getReportInstanceDownload <<Fines API>> #lightgreen
+participant "Get Report Instance Content" as getReportInstanceDownload <<Fines API>> #lightgreen
 participant "Report Azure blob store" as reportBlobStore <<Azure Blob Store>> #lightgreen
 database "Fines Database" as db #lightgreen
 

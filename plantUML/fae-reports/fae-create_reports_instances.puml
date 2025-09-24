@@ -7,14 +7,9 @@ participant "Create Report" as createReportInstancePage <<UI Page>> #lightskyblu
 participant "View report" as viewReportsInstance <<UI Page>> #lightskyblue
 
 participant "Get Business Units" as getBU <<Fines API>> #lightgreen
-participant "Get Report Types" as getReportTypes <<Fines API>> #lightgreen
-participant "Get Report Type" as getReportType <<Fines API>> #lightgreen
-participant "Get Report Instances" as getReportInstances <<Fines API>> #lightgreen
+participant "Get Report" as getReportType <<Fines API>> #lightgreen
 participant "Create Report Instance" as createReportInstance <<Fines API>> #lightgreen
-participant "Download Report" as getReportInstanceDownload <<Fines API>> #lightgreen
-participant "Get Report Instance Summary" as getReportInstanceSummary <<Fines API>> #lightgreen
-
-participant "Report Azure blob store" as reportBlobStore <<Azure Blob Store>> #lightgreen
+participant "Get Report Instance" as getReportInstanceSummary <<Fines API>> #lightgreen
 
 
 database "Fines Database" as db #lightgreen
