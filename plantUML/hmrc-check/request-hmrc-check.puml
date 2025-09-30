@@ -1,0 +1,17 @@
+@startuml
+actor "Inputter" as user
+
+participant "Request HMRC Check" as requestHmrcCheckUI <<UI Page>> #lightskyblue
+participant "Request HMRC Check" as requestHmrcCheck <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+queue "HMRC Check Queue" as hmrcQueue <<Queue>> #lightgreen
+
+user -> requestHmrcCheckUI ++ : Initiates HMRC data check
+requestHmrcCheckUI -> requestHmrcCheck ++ : Sends HMRC check request
+requestHmrcCheck -> db ++ : Store HMRC check request
+db --> requestHmrcCheck --
+requestHmrcCheck -> hmrcQueue ++ : Queue HMRC data check request
+hmrcQueue --> requestHmrcCheck -- : Acknowledge queued request
+requestHmrcCheck -> requestHmrcCheckUI -- : Return request accepted (200 OK) with the check id
+requestHmrcCheckUI -> user -- : Display processing request screen
+@enduml

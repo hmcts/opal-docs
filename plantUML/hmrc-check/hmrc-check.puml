@@ -1,0 +1,41 @@
+@startuml
+actor "Inputter" as user
+
+participant "Request HMRC Check" as requestHmrcCheckUI <<UI Page>> #lightskyblue
+participant "Process HMRC Check" as processHmrcCheckUI <<UI Page>> #lightskyblue
+participant "GET HMRC check status" as hmrcCheckStatusAPI <<Fines API>> #lightgreen
+participant "Request HMRC Check" as requestHmrcCheck <<Fines API>> #lightgreen
+participant "GET HMRC check content" as downloadHmrcCheckResult <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+queue "HMRC Check Queue" as hmrcQueue <<Queue>> #lightgreen
+
+
+user -> requestHmrcCheckUI ++ : Initiates HMRC data check
+requestHmrcCheckUI -> requestHmrcCheck ++ : Sends HMRC check request
+requestHmrcCheck -> db ++ : Store HMRC check request
+db --> requestHmrcCheck --
+requestHmrcCheck -> hmrcQueue ++ : Queue HMRC data check request
+hmrcQueue --> requestHmrcCheck -- : Acknowledge queued request
+requestHmrcCheck -> requestHmrcCheckUI -- : Return request accepted (200 OK) with the check id
+
+requestHmrcCheckUI -> processHmrcCheckUI ++ : Opens HMRC check status page
+requestHmrcCheckUI--
+loop Polling until status is not pending or in progress (or a 5-minute timeout occurs)
+    processHmrcCheckUI -> hmrcCheckStatusAPI ++ : Poll HMRC check status
+    hmrcCheckStatusAPI -> db ++ : Retrieve HMRC check status
+    db --> hmrcCheckStatusAPI -- : Return HMRC check status
+    hmrcCheckStatusAPI --> processHmrcCheckUI -- : Return HMRC check status (e.g., pending, completed, failed)
+end
+
+processHmrcCheckUI --> user : Display latest HMRC check status
+
+user -> processHmrcCheckUI  : Clicks download
+processHmrcCheckUI -> downloadHmrcCheckResult ++ : Request HMRC check result download
+downloadHmrcCheckResult -> db ++ : Retrieve HMRC check result
+db --> downloadHmrcCheckResult -- : Return HMRC check result
+downloadHmrcCheckResult -> downloadHmrcCheckResult : Generate downloadable file (PDF)
+downloadHmrcCheckResult --> processHmrcCheckUI -- : Return downloadable file (PDF)
+processHmrcCheckUI --> user -- : Render downloadable file (PDF) in browser
+
+
+@enduml

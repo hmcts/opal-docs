@@ -1,0 +1,17 @@
+@startuml
+actor "Inputter" as user
+
+participant "Process HMRC Check" as requestHmrcCheckUI <<UI Page>> #lightskyblue
+participant "GET HMRC check content" as downloadHmrcCheckResult <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+
+user -> requestHmrcCheckUI ++ : Opens HMRC check result download page
+requestHmrcCheckUI -> downloadHmrcCheckResult ++ : Request HMRC check result download
+downloadHmrcCheckResult -> db ++ : Retrieve HMRC check result
+db --> downloadHmrcCheckResult -- : Return HMRC check result
+downloadHmrcCheckResult -> downloadHmrcCheckResult : Generate downloadable file (PDF)
+downloadHmrcCheckResult --> requestHmrcCheckUI -- : Return downloadable file (PDF)
+requestHmrcCheckUI --> user -- : Render downloadable file (PDF) in browser
+
+@enduml

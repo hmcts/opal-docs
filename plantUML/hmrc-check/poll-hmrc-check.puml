@@ -1,0 +1,20 @@
+@startuml
+actor "Inputter" as user
+
+participant "Request HMRC Check" as requestHmrcCheck <<Fines API>> #lightgreen
+participant "Process HMRC Check" as requestHmrcCheckUI <<UI Page>> #lightskyblue
+participant "GET  HMRC check status" as hmrcCheckStatusAPI <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+user -> requestHmrcCheckUI ++ : Opens HMRC check status page
+
+loop Polling until status is not pending or in progress (or a 5-minute timeout occurs)
+    requestHmrcCheckUI -> hmrcCheckStatusAPI ++ : Poll HMRC check status
+    hmrcCheckStatusAPI -> db ++ : Retrieve HMRC check status
+    db --> hmrcCheckStatusAPI -- : Return HMRC check status
+    hmrcCheckStatusAPI --> requestHmrcCheckUI -- : Return HMRC check status (e.g., pending, completed, failed)
+end
+
+requestHmrcCheckUI --> user -- : Display latest HMRC check status
+
+@enduml

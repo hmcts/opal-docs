@@ -1,0 +1,133 @@
+@startuml
+queue "HMRC Check queue" as hmrcCheckQueue <<Queue>> #lightgreen
+participant "Process HMRC check service" as processHmrcCheckService <<Fines Service>> #lightgreen
+participant "HMRC HATEOAS RESTful API service" as hmrcAPIs <<HMRC APIs>> #lightskyblue
+database "Redis Cache" as redis #orange
+database "Fines Database" as db #lightgreen
+
+
+hmrcCheckQueue --> processHmrcCheckService ++ : Trigger HMRC data check processing
+processHmrcCheckService -> db ++ : Update HMRC check status to 'in progress'
+db --> processHmrcCheckService -- : Acknowledge status update
+
+== Authentication ==
+processHmrcCheckService -> redis ++ : Check for cached OAuth2 hmrc access token
+alt Token exists and not expired
+redis --> processHmrcCheckService -- : Return cached access_token
+else No valid token
+redis --> processHmrcCheckService -- : No token found
+processHmrcCheckService -> hmrcAPIs ++ : Request OAuth2 access token (client_id, client_secret, scope)
+note right
+Parameters:
+- client_id (from HMRC registration)
+- client_secret (from HMRC registration)
+- grant_type=client_credentials
+- scope (API access subset)
+
+Response:
+- access_token (Bearer token)
+- expires_in (seconds, ~4 hours for user-restricted endpoints)
+
+Process:
+1. On startup or cache miss, request a token.
+2. Store in Redis with TTL = expires_in.
+3. Use token for subsequent API calls.
+end note
+hmrcAPIs --> processHmrcCheckService -- : Return OAuth2 access token (JSON)
+processHmrcCheckService -> redis ++ : Store access_token with expiry (expires_in)
+note right
+The access_token is cached in Redis with a TTL equal to the HMRC-provided expires_in value (minus 10 minutes).
+This ensures tokens are automatically invalidated before the token expires, enforcing refresh logic.
+If expired, the next request triggers a new token fetch.
+end note
+redis --> processHmrcCheckService -- : Acknowledge store
+end alt
+
+
+== Data Retrieval ==
+processHmrcCheckService -> hmrcAPIs ++ : Match an individual's details against HMRC data (/individuals/matching)
+note right
+Use this endpoint to match an individual's first name, last name, date of birth and National Insurance number (nino) against HMRC’s records.
+On a successful match, a matchId is returned which will be used for subsequent API calls to retrieve the individual's data.
+
+Match Criteria
+For a successful match, the following set of criteria must be met.
+|= Parameter |= Match criteria |
+|= firstName |= First character must be identical; all remaining characters are ignored. |
+|= lastName |= First three characters must be identical; all remaining characters are ignored. |
+|= nino |= All characters must be identical. |
+|= dateOfBirth |= All characters must be identical. |
+
+end note
+hmrcAPIs --> processHmrcCheckService -- : Return match result (JSON)
+
+par each api call will be made in parallel to reduce overall time taken
+else
+processHmrcCheckService -> hmrcAPIs ++ : Get address details (/individuals/details/addresses)
+hmrcAPIs --> processHmrcCheckService -- : Return address details (JSON)
+note right
+Use this endpoint to get an individual’s address details.
+Data is only available for the current and previous 6 tax years.
+end note
+else
+processHmrcCheckService -> hmrcAPIs ++ : Get contact details (/individuals/details/contact-details)
+hmrcAPIs --> processHmrcCheckService -- : Return contact details (JSON)
+note right
+Use this endpoint to get an individual’s contact details.
+Data is only available for the current and previous 6 tax years.
+end note
+else
+processHmrcCheckService -> hmrcAPIs ++ : Get an individual's PAYE employment details(/individuals/employments/paye)
+hmrcAPIs --> processHmrcCheckService -- : Return PAYE employment details (JSON)
+note right
+Use this endpoint to get an individual’s PAYE employment details for the requested time period.
+Data is only available for the current and previous 6 tax years.
+The fromDate and toDate are inclusive, so the data returned includes the fromDate and toDate specified.
+end note
+else
+processHmrcCheckService -> hmrcAPIs ++ : Get PAYE income history (/individuals/income/paye)
+hmrcAPIs --> processHmrcCheckService -- : Return PAYE income history (JSON)
+note right
+Use this endpoint to get an individual’s PAYE income details per employment for the requested time period.
+
+Data is only available for the current and previous 6 tax years.
+
+The fromDate and toDate are inclusive, so the data returned includes the fromDate and toDate specified.
+end note
+else
+processHmrcCheckService -> hmrcAPIs ++ : Get Self Assessment history (/individuals/income/sa)
+hmrcAPIs --> processHmrcCheckService -- : Return Self Assessment history (JSON)
+note right
+Use this endpoint to get an individual’s Self Assessment tax return history for the requested time period.
+
+Data is only available for the current and previous 6 tax years.
+
+The fromTaxYear and toTaxYear are inclusive, so the data returned includes the fromTaxYear and toTaxYear specified.
+end note
+else
+processHmrcCheckService -> hmrcAPIs ++ : Get an individual's employments income data from their Self Assessment tax return (/individuals/income/sa/employments)
+hmrcAPIs --> processHmrcCheckService -- : Return Self Assessment employment income data (JSON)
+note right
+Use this endpoint to get details of an individual's income from employments, as sent in their Self Assessment tax return. Data will be returned for the requested time period.
+
+Data is only available for the current and previous 6 tax years.
+
+The fromTaxYear and toTaxYear are inclusive, so the data returned includes the fromTaxYear and toTaxYear specified.
+end note
+else
+processHmrcCheckService -> hmrcAPIs ++ : Get an individual's income source details from their Self Assessment tax return (/individuals/income/sa/source)
+hmrcAPIs --> processHmrcCheckService -- : Return Self Assessment income source details (JSON)
+note right
+Use this endpoint to get details of an individual's income sources, as sent in their Self Assessment tax return. Data will be returned for the requested time period.
+
+Data is only available for the current and previous 6 tax years.
+
+The fromTaxYear and toTaxYear are inclusive, so the data returned includes the fromTaxYear and toTaxYear specified.
+end note
+end par
+== Data Processing and Storage ==
+processHmrcCheckService -> processHmrcCheckService : Aggregate and format all retrieved data
+processHmrcCheckService -> db ++ : Store HMRC check results and update status to 'completed'
+db --> processHmrcCheckService -- : Acknowledge results storage
+processHmrcCheckService --> hmrcCheckQueue -- : Acknowledge HMRC data check processing completion
+@enduml
