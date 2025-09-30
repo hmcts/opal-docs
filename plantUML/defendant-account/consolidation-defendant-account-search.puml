@@ -1,0 +1,30 @@
+@startuml
+actor "Inputter" as user
+
+
+
+participant "Select Business Unit" as selectBusinessUnitUI <<UI Page>> #lightskyblue
+participant "Consolidate Account" as consolidateAccountUI <<UI Page>> #lightskyblue
+
+participant "Get business units" as fetchBusinessUnitsAPI <<Fines API>> #lightgreen
+participant "Search Defendant Accounts" as defendantSearchAPI <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+
+
+user -> selectBusinessUnitUI ++ : Views select business unit page
+selectBusinessUnitUI -> fetchBusinessUnitsAPI ++ : Fetch business units
+fetchBusinessUnitsAPI -> db ++ : Query for business units
+db --> fetchBusinessUnitsAPI -- : Return business units
+fetchBusinessUnitsAPI --> selectBusinessUnitUI -- : Return business units
+user -> selectBusinessUnitUI : Select business unit
+selectBusinessUnitUI -> consolidateAccountUI --++ : Navigate to consolidate account page
+user -> consolidateAccountUI: Input account details
+user -> consolidateAccountUI: Clicks search
+consolidateAccountUI -> defendantSearchAPI ++ : Search for accounts to consolidate (ensuring consolidation_search is true)
+defendantSearchAPI -> db ++ : Query for v_search_defendent_accounts_consolidation
+db --> defendantSearchAPI -- : Return search results
+defendantSearchAPI --> consolidateAccountUI -- : Return search results
+consolidateAccountUI --> user -- : Display search results
+
+@enduml
