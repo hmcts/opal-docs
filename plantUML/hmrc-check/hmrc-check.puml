@@ -4,7 +4,7 @@ actor "Inputter" as user
 participant "Request HMRC Check" as requestHmrcCheckUI <<UI Page>> #lightskyblue
 participant "Process HMRC Check" as processHmrcCheckUI <<UI Page>> #lightskyblue
 participant "GET HMRC check status" as hmrcCheckStatusAPI <<Fines API>> #lightgreen
-participant "Request HMRC Check" as requestHmrcCheck <<Fines API>> #lightgreen
+participant "Add HMRC Check" as requestHmrcCheck <<Fines API>> #lightgreen
 participant "GET HMRC check content" as downloadHmrcCheckResult <<Fines API>> #lightgreen
 database "Fines Database" as db #lightgreen
 queue "HMRC Check Queue" as hmrcQueue <<Queue>> #lightgreen

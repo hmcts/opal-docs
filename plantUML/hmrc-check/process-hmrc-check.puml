@@ -1,6 +1,6 @@
 @startuml
 queue "HMRC Check queue" as hmrcCheckQueue <<Queue>> #lightgreen
-participant "Process HMRC check service" as processHmrcCheckService <<Fines Service>> #lightgreen
+participant "HMRC Check processor" as processHmrcCheckService <<Fines Service>> #lightgreen
 participant "HMRC HATEOAS RESTful API service" as hmrcAPIs <<HMRC APIs>> #lightskyblue
 database "Redis Cache" as redis #orange
 database "Fines Database" as db #lightgreen
