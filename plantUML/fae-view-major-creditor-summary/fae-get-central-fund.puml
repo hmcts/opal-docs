@@ -1,0 +1,19 @@
+@startuml
+
+participant "Search Account (Major Creditor)" as account <<UI Page>> #lightskyblue
+participant "Get Major Creditor" as getMaj <<Fines API>> #lightgreen
+participant "Get Central Fund" as getCent <<Fines API>> #lightgreen
+database "Fines DB" as db #lightgreen
+
+activate account
+account -> getMaj ++ : Retrieve Major Creditor data
+getMaj --> db ++ : Get Major Creditor (JPA)
+db --> getMaj -- : Return Major Creditor data
+getMaj --> account -- : Return Major Creditor data
+account --> getCent ++: Get Central Fund data
+getCent --> db ++ : Get Central Fund (JPA)
+db --> getCent -- : Return Central Fund data
+getCent --> account -- : Return Central Fund data
+account -> account : Combine Major Creditor \n& Central Fund data to populate pick list
+
+@enduml
