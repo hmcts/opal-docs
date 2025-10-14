@@ -1,0 +1,40 @@
+@startuml
+actor User
+participant "Account Details" as viewAccount <<UI Page>> #lightskyblue
+participant "Account Details \n(Consolidated Accounts Tab)" as consolidatedAccountsTab <<UI Page>> #lightskyblue
+participant "Get Defendant Account Header Summary" as getDefendantHeaderSummary <<Fines API>> #lightgreen
+participant "Get Defendant Account\nConsolidated Accounts" as getConsolidatedAccountsApi <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+participant "GMAS DAC" as gmasdac <<API>> #yellow
+database "Get Defendant Account\nConsolidated Accounts" as dblegacy <<GOB SP>> #yellow
+
+
+User -> viewAccount ++: Views Defendant Account
+
+viewAccount --> getDefendantHeaderSummary ++ : Get data
+getDefendantHeaderSummary -> db ++ : Select data (JPA)
+db --> getDefendantHeaderSummary --: Return data
+getDefendantHeaderSummary --> viewAccount -- : Return data
+
+note right viewAccount
+Only show Consolidated Accounts tab if header summary contains has_consolidated_accounts = true
+end note
+
+User -> viewAccount : Clicks consolidate account tab
+viewAccount -> consolidatedAccountsTab ++ : Render tab
+viewAccount--
+consolidatedAccountsTab --> getConsolidatedAccountsApi ++ : Get data
+alt Opal Mode
+getConsolidatedAccountsApi --> db ++ : Select data (JPA)
+db --> getConsolidatedAccountsApi --: Return data
+else Legacy Mode
+getConsolidatedAccountsApi --> gmasdac ++ : Get Defendant Account Consolidated Accounts (JSON)
+gmasdac -> gmasdac: Convert JSON to XML
+gmasdac --> dblegacy ++ : Get Defendant Account Consolidated Accounts (SP)
+dblegacy --> gmasdac -- : Return Defendant Account Consolidated Accounts
+gmasdac --> getConsolidatedAccountsApi -- : Return Defendant Account Consolidated Accounts (XML)
+getConsolidatedAccountsApi -> getConsolidatedAccountsApi : Convert XML to JSON
+end
+getConsolidatedAccountsApi --> consolidatedAccountsTab --: Return data
+consolidatedAccountsTab --> User -- : Display data
+@enduml

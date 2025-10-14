@@ -1,8 +1,15 @@
 @startuml
-actor "Inputter" as user
+actor "User" as user
+
+participant "Enforcement tab" as enforcementTabUI <<UI Page>> #lightskyblue
+
 
 participant "Request HMRC Check" as requestHmrcCheckUI <<UI Page>> #lightskyblue
 participant "Process HMRC Check" as processHmrcCheckUI <<UI Page>> #lightskyblue
+
+participant "Get defendant enforcement status" as getEnforcementStatusApi <<Fines API>> #lightgreen
+
+
 participant "GET HMRC check status" as hmrcCheckStatusAPI <<Fines API>> #lightgreen
 participant "Add HMRC Check" as requestHmrcCheck <<Fines API>> #lightgreen
 participant "GET HMRC check content" as downloadHmrcCheckResult <<Fines API>> #lightgreen
@@ -10,14 +17,35 @@ database "Fines Database" as db #lightgreen
 queue "HMRC Check Queue" as hmrcQueue <<Queue>> #lightgreen
 
 
-user -> requestHmrcCheckUI ++ : Initiates HMRC data check
+user -> enforcementTabUI ++ : Navigates to Enforcement tab
+enforcementTabUI -> getEnforcementStatusApi ++ : Fetch defendant enforcement status information
+getEnforcementStatusApi -> db ++ : Retrieve enforcement status
+db --> getEnforcementStatusApi -- : Return enforcement status
+getEnforcementStatusApi --> enforcementTabUI -- : Return enforcement status
+note right
+Existing response to be updated to include is_hmrc_check_eligible (boolean)
+end note
+
+enforcementTabUI --> user: Render enforcement status in UI
+
+note right
+Request HMRC check link is displayed based on the user having the permission in at least one business unit and relevant account conditions.
+end note
+user -> enforcementTabUI : User clicks request HMRC check
+note right
+When the user clicks request HMRC check:
+If the enforcement status API returns is_hmrc_check_eligible as false the user is shown a message that they are not eligible for an HMRC check.
+If the user does not have the required permission in this business unit they are shown a message that they do not have permission to request an HMRC check.
+end note
+enforcementTabUI -> requestHmrcCheckUI++ : Opens Request HMRC check page
+enforcementTabUI--
+user -> requestHmrcCheckUI : User clicks 'Yes - Request HMRC check'
 requestHmrcCheckUI -> requestHmrcCheck ++ : Sends HMRC check request
 requestHmrcCheck -> db ++ : Store HMRC check request
 db --> requestHmrcCheck --
 requestHmrcCheck -> hmrcQueue ++ : Queue HMRC data check request
 hmrcQueue --> requestHmrcCheck -- : Acknowledge queued request
 requestHmrcCheck -> requestHmrcCheckUI -- : Return request accepted (200 OK) with the check id
-
 requestHmrcCheckUI -> processHmrcCheckUI ++ : Opens HMRC check status page
 requestHmrcCheckUI--
 loop Polling until status is not pending or in progress (or a 5-minute timeout occurs)
@@ -33,9 +61,8 @@ user -> processHmrcCheckUI  : Clicks download
 processHmrcCheckUI -> downloadHmrcCheckResult ++ : Request HMRC check result download
 downloadHmrcCheckResult -> db ++ : Retrieve HMRC check result
 db --> downloadHmrcCheckResult -- : Return HMRC check result
-downloadHmrcCheckResult -> downloadHmrcCheckResult : Generate downloadable file (PDF)
-downloadHmrcCheckResult --> processHmrcCheckUI -- : Return downloadable file (PDF)
-processHmrcCheckUI --> user -- : Render downloadable file (PDF) in browser
-
+downloadHmrcCheckResult -> downloadHmrcCheckResult : Generate downloadable file (JSON/PDF)
+downloadHmrcCheckResult --> processHmrcCheckUI -- : Return binary data for the file (JSON/PDF)
+processHmrcCheckUI --> user -- : Render downloadable file (JSON/PDF) in browser
 
 @enduml
