@@ -1,0 +1,14 @@
+@startuml
+actor "User" as user
+participant "Process and Allocate" as proAll <<UI Page>> #lightskyblue
+participant "Get Interface Jobs Processed \nFile Summary" as getIntSum <<Fines API>> #lightgreen
+database "Fines DB" as db <<DB View>> #lightgreen
+
+
+user -> proAll ++: Select Till Number (allocate tab) \nor Filename (ignored tab)
+proAll -> getIntSum ++: Get processed file summary for selected item
+getIntSum -> db ++ : Get summary from DB view
+getIntSum <-- db --: Summary data
+proAll <-- getIntSum --: Summary data (JSON)
+proAll -> proAll : Display file-summary data
+@enduml

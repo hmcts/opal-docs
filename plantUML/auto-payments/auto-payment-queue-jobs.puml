@@ -1,0 +1,25 @@
+@startuml
+participant FE as "Front End" #LightBlue
+participant API as "API" #LightGreen
+database DB as "Interface Jobs Table" #Yellow
+queue Queue as "Message Queue" #Orange
+
+activate FE
+FE -> API ++: List of interface_job_ids
+API -->o API : Begin tx
+API -> DB ++: Update each status to PROCESSING where status = CREATED or FAILED
+API -> Queue ++: Enqueue interface_job_ids individually \n in one broker transaction
+alt All enqueues successful
+        API -->o API : Commit DB tx, status = PROCESSING
+        alt DB update fails
+            API --> FE : Error Response, status = CREATED or FAILED
+            note right API : Message has been enqueued but will fail downstream
+        else DB update successful
+            API --> FE : OK Response, status PROCESSING
+        end
+    else Any enqueue fails
+        API -->o API :  Rollback DB tx, status = CREATED or FAILED
+        API --> FE : Error Response, status = CREATED or FAILED
+    end
+deactivate FE
+@enduml

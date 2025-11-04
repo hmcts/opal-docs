@@ -1,0 +1,19 @@
+@startuml
+participant "Report Service" as reportService <<Fines Service>> #lightgreen
+database "Fines Database" as db #lightgreen
+participant "Report Azure blob store" as reportBlobStore <<Azure Blob Store>> #yellow
+
+
+
+reportService -> db ++ : Retrieve report instance parameters (JPA)
+reportService <-- db -- : Report instance data
+reportService -> db ++ : Fetch data needed to create report (JPA)
+reportService <-- db -- : Data for report (JSON)
+reportService -> reportService : Generate report (JSON)
+
+reportService -> reportBlobStore ++ : Store report JSON
+reportService <-- reportBlobStore -- : Confirmation of storage
+reportService -> db ++ : Update report instance status to completed (JPA)
+reportService <-- db -- : Confirmation of update
+
+@enduml

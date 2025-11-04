@@ -1,0 +1,33 @@
+@startuml
+actor "User" as user
+participant "Process and Allocate \n<i><Process Tab></i>" as process <<UI Page>> #lightskyblue
+participant "Confirm Process" as confirmProcess <<UI Page>> #lightskyblue
+participant "Process Interface Jobs" as processJobs <<Fines API>> #lightgreen
+database "Fines Database" as DB <<interface_jobs>> #yellow
+queue Queue as "Message Queue" #Orange
+
+user -> process ++: Click "Process" on Process Tab
+process -> confirmProcess --++ : Navigate to 'Confirm Process' Page
+opt Override Inhibits
+user -> confirmProcess : User chooses any files to override inhibits
+user -> confirmProcess ++ : Click "Process" button
+end
+confirmProcess -> processJobs ++ : Submit Process Request \n (with interface_job_id(s) and override_inhibits)
+
+processJobs -->o processJobs : Begin tx
+processJobs -> DB ++: Update each status to PROCESSING where status = CREATED or FAILED
+DB --
+processJobs -> Queue ++: Enqueue interface_job_ids individually \n in one broker transaction
+alt All enqueues successful
+        processJobs -->o processJobs : Commit DB tx, status = PROCESSING
+        alt TX commit fails
+            processJobs --> confirmProcess : Error Response, status = CREATED or FAILED
+            note right processJobs : Message has been enqueued but will fail downstream
+        else TX commit successful
+            processJobs --> confirmProcess : OK Response, status PROCESSING
+        end
+    else Any enqueue fails
+        processJobs -->o processJobs :  Rollback DB tx, status = CREATED or FAILED
+        processJobs --> confirmProcess : Error Response, status = CREATED or FAILED
+    end
+@enduml

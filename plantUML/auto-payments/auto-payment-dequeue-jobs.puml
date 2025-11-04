@@ -1,0 +1,62 @@
+@startuml
+queue Queue as "Message Queue" #Orange
+participant Consumer as "Consumer Service" #LightGreen
+database DB as "Fines DB" #Yellow
+participant Report as "Reporting Service" #LightGreen
+
+activate Queue
+activate Consumer
+
+Consumer --> Queue : Poll for messages (Peek-lock)
+Queue -> Consumer : Lock message, pass contents to consumer
+
+opt message status != PROCESSING
+Consumer --> Queue : Abandon message (release lock)
+end
+
+Consumer -->o Consumer : Begin tx
+opt Override inhibits
+Consumer -> DB ++: Set override inhibits in interface_files
+end
+
+Consumer -> DB : Set interface_job start_time.
+Consumer -> DB : Call stored procedure to process payment.
+
+alt Payment successful
+    DB --> Consumer : Return till_id
+    Consumer -> DB: Set interface_job end_time.
+
+    alt till_id != null
+
+        Consumer -> Report ++: Generate payment report for till_id
+        Report --> Consumer : Return status
+
+        alt Report successful
+            Consumer -> DB : set interface_job status to COMPLETE
+            Consumer -->o Consumer : Commit tx
+            Consumer --> Queue : Complete message (remove from queue)
+        else Report failed
+            Consumer -->o Consumer : Rollback tx
+            Consumer --> Queue : Abandon message (release lock)
+        end
+
+        else till_id = null
+            Consumer -> DB : set interface_job status to IGNORED
+            Consumer -->o Consumer : Commit tx
+            Consumer --> Queue : Complete message (remove from queue)
+        end
+
+else Payment failed
+    DB --> Consumer : Return failure
+    Consumer -->o Consumer : Rollback tx
+    Consumer -> DB: insert interface_message set status to FAILED
+    Consumer --> Queue : Complete message (remove from queue)
+end
+
+opt transient DB failure
+    DB --> Consumer : Return failure
+    Consumer -->o Consumer : Rollback tx
+    Consumer --> Queue : Abandon message (release lock)
+end
+deactivate Consumer
+@enduml

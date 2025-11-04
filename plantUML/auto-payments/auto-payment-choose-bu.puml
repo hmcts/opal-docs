@@ -1,0 +1,16 @@
+@startuml
+actor "User" as user
+participant "Dashboard" as dashboard <<UI Page>> #lightskyblue
+participant "Select Business Unit" as selectBU <<UI Page>> #lightskyblue
+participant "Get Business Units \nOutstanding Auto Payment Count" as countTills <<Fines API>> #lightgreen
+database "Fines DB" as db <<DB View>> #lightgreen
+
+
+user -> dashboard ++: Select 'auto payment' link
+dashboard -> selectBU --++: Navigate to
+selectBU -> countTills ++: Get Counts per Business Unit
+countTills -> db ++ :
+countTills <-- db --: Counts per Business Unit
+selectBU <-- countTills --: Counts per Business Unit
+selectBU -> selectBU : Display counts per Business Unit
+@enduml
