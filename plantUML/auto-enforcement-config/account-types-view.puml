@@ -1,0 +1,16 @@
+@startuml
+Title: Auto Enforcement Configuration - View Enforcement Account Types
+actor User
+participant "Auto Enforcement Configuration (Account types tab)" as autoEnforcementConfigurationUI <<UI Page>> #lightskyblue
+participant "Get enforcement account types" as getEnforcementAccountTypesAPI <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+User -> autoEnforcementConfigurationUI ++ : View auto configuration account types
+autoEnforcementConfigurationUI -> getEnforcementAccountTypesAPI ++: Get enforcement account types
+getEnforcementAccountTypesAPI -> db ++ : Select data (JPA)
+db --> getEnforcementAccountTypesAPI -- : Return data
+getEnforcementAccountTypesAPI --> autoEnforcementConfigurationUI -- : Return data
+autoEnforcementConfigurationUI --> User -- : Display account types
+
+
+@enduml

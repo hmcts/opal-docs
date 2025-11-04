@@ -1,0 +1,28 @@
+@startuml
+Title: Auto Enforcement Configuration - Edit Enforcement Account Type Values
+actor User
+participant "Auto Enforcement Configuration (Account types tab)" as autoEnforcementConfigurationUI <<UI Page>> #lightskyblue
+participant "Amend Enforcement Values" as amendEnforcementValuesUI <<UI Page>> #lightskyblue
+
+participant "Get enforcement account types" as getEnforcementAccountTypesAPI <<Fines API>> #lightgreen
+participant "Update enforcement account type" as updateEnforcementAccountTypeApi <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+User -> autoEnforcementConfigurationUI ++: Clicks change enforcement on an enforcement account type
+autoEnforcementConfigurationUI -> amendEnforcementValuesUI ++ : Render amend enforcement values page
+amendEnforcementValuesUI --> User : Display amend enforcement values page
+note right
+Uses cached data from initial account types tab load
+end note
+User -> amendEnforcementValuesUI: Updates enforcement account type values
+amendEnforcementValuesUI -> updateEnforcementAccountTypeApi ++ : Update enforcement account type
+updateEnforcementAccountTypeApi -> db ++ : Update data (JPA)
+db --> updateEnforcementAccountTypeApi -- : Acknowledgement
+updateEnforcementAccountTypeApi -> db ++ : Select updated data (JPA)
+db --> updateEnforcementAccountTypeApi -- : Return updated data
+updateEnforcementAccountTypeApi --> amendEnforcementValuesUI -- : Return updated data
+amendEnforcementValuesUI --> autoEnforcementConfigurationUI -- : Display updated enforcement account type values
+autoEnforcementConfigurationUI --> User -- : Display updated account types
+
+
+@enduml
