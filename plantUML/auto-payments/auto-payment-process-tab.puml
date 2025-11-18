@@ -1,0 +1,21 @@
+@startuml
+actor "User" as user
+participant "Select Business Unit" as selectBU <<UI Page>> #lightskyblue
+participant "Process and Allocate" as proAll <<UI Page>> #lightskyblue
+participant "Get Interface Jobs Summary" as interfaceFiles <<Fines API>> #lightgreen
+database "Fines DB" as db <<DB>> #lightgreen
+
+
+user -> selectBU --++: Selects Business Units \nand clicks 'Continue'
+selectBU -> proAll --++: Navigate to Process Tab
+proAll -> interfaceFiles ++: List of Business Unit IDs, \n Status = 'Created' or 'Failed', \n Interface Name = 'Payments_In'
+interfaceFiles -> db ++ : Get ready to process Interface Jobs
+interfaceFiles <-- db --: Interface Jobs Summaries
+proAll <-- interfaceFiles --: Populate Process tab
+
+proAll -> interfaceFiles ++: List of Business Unit IDs, \n Status = 'Ignored', \n Interface Name = 'Payments_In', \n Completed Date From & Completed Date To range
+interfaceFiles -> db ++ : Get ignored Interface Jobs
+interfaceFiles <-- db --: Interface Jobs Summaries
+proAll <-- interfaceFiles --: Populate Ignored Tab count
+
+@enduml

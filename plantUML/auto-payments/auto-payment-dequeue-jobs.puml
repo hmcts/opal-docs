@@ -15,24 +15,20 @@ Consumer --> Queue : Abandon message (release lock)
 end
 
 Consumer -->o Consumer : Begin tx
-opt Override inhibits
-Consumer -> DB ++: Set override inhibits in interface_files
-end
 
-Consumer -> DB : Set interface_job start_time.
-Consumer -> DB : Call stored procedure to process payment.
+Consumer -> DB ++: Call stored procedure to process payment.
 
 alt Payment successful
     DB --> Consumer : Return till_id
-    Consumer -> DB: Set interface_job end_time.
 
     alt till_id != null
 
         Consumer -> Report ++: Generate payment report for till_id
-        Report --> Consumer : Return status
+        Report --> Consumer --: Return status
 
         alt Report successful
             Consumer -> DB : set interface_job status to COMPLETE
+            Consumer -> DB: Set interface_job completed_datetime.
             Consumer -->o Consumer : Commit tx
             Consumer --> Queue : Complete message (remove from queue)
         else Report failed
@@ -42,6 +38,7 @@ alt Payment successful
 
         else till_id = null
             Consumer -> DB : set interface_job status to IGNORED
+            Consumer -> DB: Set interface_job completed_datetime.
             Consumer -->o Consumer : Commit tx
             Consumer --> Queue : Complete message (remove from queue)
         end
@@ -50,11 +47,12 @@ else Payment failed
     DB --> Consumer : Return failure
     Consumer -->o Consumer : Rollback tx
     Consumer -> DB: insert interface_message set status to FAILED
+    Consumer -> DB: Set interface_job completed_datetime.
     Consumer --> Queue : Complete message (remove from queue)
 end
 
 opt transient DB failure
-    DB --> Consumer : Return failure
+    DB --> Consumer --: Return failure
     Consumer -->o Consumer : Rollback tx
     Consumer --> Queue : Abandon message (release lock)
 end

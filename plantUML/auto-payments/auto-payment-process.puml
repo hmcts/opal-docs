@@ -10,12 +10,12 @@ user -> process ++: Click "Process" on Process Tab
 process -> confirmProcess --++ : Navigate to 'Confirm Process' Page
 opt Override Inhibits
 user -> confirmProcess : User chooses any files to override inhibits
-user -> confirmProcess ++ : Click "Process" button
+user -> confirmProcess : Click "Process" button
 end
 confirmProcess -> processJobs ++ : Submit Process Request \n (with interface_job_id(s) and override_inhibits)
 
 processJobs -->o processJobs : Begin tx
-processJobs -> DB ++: Update each status to PROCESSING where status = CREATED or FAILED
+processJobs -> DB ++: Update each status to PROCESSING where status = CREATED or FAILED \n & set start_datetime & set override_inhibits
 DB --
 processJobs -> Queue ++: Enqueue interface_job_ids individually \n in one broker transaction
 alt All enqueues successful

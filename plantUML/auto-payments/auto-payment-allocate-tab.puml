@@ -1,0 +1,24 @@
+@startuml
+actor "User" as user
+participant "Process and Allocate" as proAll <<UI Page>> #lightskyblue
+participant "Get Tills" as tills <<Fines API>> #lightgreen
+participant "Get Interface Jobs Summary" as interfaceFiles <<Fines API>> #lightgreen
+database "Fines DB" as db <<DB View>> #lightgreen
+
+user -> proAll --++: Navigates to Allocate Tab
+proAll -> tills ++: List of Business Unit IDs, \n Allocated = 'false', \n Auto_payment = 'true'
+tills -> db ++ : Get Tills & additional auto payment info
+tills <-- db --: Tills data & additional auto payment info
+proAll <-- tills --: Populate Allocate Tab
+
+proAll -> interfaceFiles ++: List of Business Unit IDs, \n Status = 'Processing', \n Interface Name = 'Payments_In'
+interfaceFiles -> db ++ : Get processing Interface Jobs
+interfaceFiles <-- db --: Interface Jobs Summaries
+proAll <-- interfaceFiles --: Populate Processing files count
+
+proAll -> interfaceFiles ++: List of Business Unit IDs, \n Status = 'Ignored', \n Interface Name = 'Payments_In', \n Completed Date From & Completed Date To range
+interfaceFiles -> db ++ : Get ignored Interface Jobs
+interfaceFiles <-- db --: Interface Jobs Summaries
+proAll <-- interfaceFiles --: Populate Ignored Tab count
+
+@enduml
