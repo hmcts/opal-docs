@@ -2,7 +2,7 @@
 actor "User" as user
 participant "Account Details \n(History)" as account <<UI Page>> #lightskyblue
 participant "Get Defendant Account \nHistory" as getHistoryApi <<Fines API>> #lightgreen
-database "Fines DB" as db <<View>>#lightgreen
+database "Opal DB" as db <<Fines>>#lightgreen
 participant "GMAS DAC" as gmasDac <<API>> #yellow
 database "Get Defendant Account \nHistory" as getHistorySP <<GOB SP>> #yellow
 
