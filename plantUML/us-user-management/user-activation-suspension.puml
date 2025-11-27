@@ -1,0 +1,29 @@
+@startuml
+actor "User" as user
+participant "Account Details" as accDetails <<User Portal>> #LightSkyBlue
+participant "Activate Account" as activateAcc <<User Portal>> #LightSkyBlue
+participant "Suspend Account" as suspendAcc <<User Portal>> #LightSkyBlue
+participant "Update User" as upUserApi <<User API>> #LightGreen
+database "User Database" as userdb #LightGreen
+
+alt Activate User Account
+    user -> accDetails ++: Clicks 'Activate account' button
+    accDetails -> activateAcc ++: Navigates to
+    activateAcc -> upUserApi ++: Submit Activation Date
+    upUserApi -> userdb ++: Update user Activation Date (JPA)
+    userdb --> upUserApi --: Confirmation of update
+    upUserApi --> activateAcc --: Confirmation of update (JSON)
+    activateAcc --> accDetails --: Navigates to
+    deactivate accDetails
+else Suspend User Account
+    user -> accDetails ++: Clicks 'Suspend account' button
+    accDetails -> suspendAcc ++: Naviagtes to
+    suspendAcc -> upUserApi ++: Submit suspension date range & reason
+    upUserApi -> userdb ++: Update user suspend start, \nsuspend end dates & reason (JPA)
+    userdb --> upUserApi --: Confirmation of update
+    upUserApi --> suspendAcc --: Confirmation of update (JSON)
+    suspendAcc --> accDetails --: Navigates to
+    deactivate accDetails
+end
+
+@enduml

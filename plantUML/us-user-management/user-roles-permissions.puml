@@ -1,0 +1,46 @@
+@startuml
+actor "User" as user
+participant "Account Details" as accDetails <<User Portal>> #LightSkyBlue
+participant "Assign Roles" as assignRoles <<User Portal>> #LightSkyBlue
+participant "Assign Business Units" as assignBU <<User Portal>> #LightSkyBlue
+participant "Get User" as getUserApi <<User API>> #LightGreen
+participant "Get Roles" as getRolesApi <<User API>> #LightGreen
+participant "Get Business Units" as getBUApi <<User API>> #LightGreen
+participant "Add User Roles" as addUserRolesApi <<User API>> #LightGreen
+database "User Database" as userdb #LightGreen
+
+user -> accDetails ++: Navigates to 'Roles and Permissions' tab
+accDetails -> getUserApi ++: Get User Roles by User ID, \nOpal Domain & Permission
+getUserApi -> userdb ++: Retrieve user roles data (JPA)
+userdb --> getUserApi --: User Roles Data
+getUserApi --> accDetails --: User Roles Data (JSON)
+
+user -> accDetails : Clicks 'Assign roles' button
+accDetails -> assignRoles ++--: Navigates to
+assignRoles -> getRolesApi ++: Get Roles by Opal Domain
+getRolesApi -> userdb ++: Retrieve roles data (JPA)
+userdb --> getRolesApi --: Roles Data
+getRolesApi --> assignRoles --: Roles Data (JSON)
+user -> assignRoles : Selects Roles & \nClicks 'continue' button
+
+assignRoles -> assignBU ++--: Navigates to
+assignBU -> getBUApi ++: Get Business Units
+getBUApi -> userdb ++: Retrieve business units data (JPA)
+userdb --> getBUApi --: Business Units Data
+getBUApi --> assignBU --: Business Units Data (JSON)
+user -> assignBU : Selects Business Units & \nClicks 'Save selection' button
+
+assignBU -> addUserRolesApi ++: Submit list of Roles & Business Units by User ID
+addUserRolesApi -> userdb ++: Add new Business Unit User Role (JPA)
+userdb --> addUserRolesApi --: Confirmation of update
+addUserRolesApi --> assignBU --: Confirmation of update (JSON)
+assignBU --> accDetails --++: Navigates to & refreshes 'Roles and Permissions' tab
+
+
+
+
+
+
+
+
+@enduml

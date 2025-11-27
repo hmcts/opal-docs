@@ -1,0 +1,16 @@
+@startuml
+actor "User" as user
+participant "Search Account Results" as searchUserRes <<User Portal>> #LightSkyBlue
+participant "Account Details" as accDetails <<User Portal>> #LightSkyBlue
+participant "Get User" as getUserApi <<User API>> #LightGreen
+database "User Database" as userdb #LightGreen
+
+
+user -> searchUserRes ++: Selects user from results
+searchUserRes -> getUserApi ++: Get User Details by User ID
+getUserApi -> userdb ++: Retrieve user data (JPA)
+userdb --> getUserApi --: User Details Data
+getUserApi --> searchUserRes : User Details Data (JSON)
+searchUserRes -> accDetails --++: Navigate to & populate Details tab
+
+@enduml

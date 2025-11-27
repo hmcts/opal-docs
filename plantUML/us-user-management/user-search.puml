@@ -1,0 +1,17 @@
+@startuml
+actor "User" as user
+participant "Search Account" as searchUser <<User Portal>> #LightSkyBlue
+participant "Search Account Results" as searchUserRes <<User Portal>> #LightSkyBlue
+participant "Search Users" as searchUsersapi <<User API>> #LightGreen
+database "User Database" as userdb #LightGreen
+
+
+user -> searchUser ++: Navigates to
+user -> searchUser : Enters search criteria or \nclicks 'Review new accounts' button
+searchUser -> searchUsersapi ++: Search for user
+searchUsersapi -> userdb ++: Retrieve user data (JPA)
+userdb --> searchUsersapi --: List of User Data
+searchUsersapi --> searchUser : List of User Data (JSON)
+searchUser -> searchUserRes --++: Navigte to & populate results
+
+@enduml

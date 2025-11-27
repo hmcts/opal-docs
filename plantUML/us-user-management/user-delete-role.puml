@@ -1,0 +1,16 @@
+@startuml
+actor "User" as user
+participant "Account Details" as accDetails <<User Portal>> #LightSkyBlue
+participant "Delete Role" as delRole <<User Portal>> #LightSkyBlue
+participant "Delete User Role" as delUserRoleApi <<User API>> #LightGreen
+database "User Database" as userdb #LightGreen
+
+user -> accDetails ++: Clicks 'Delete role' link on a User Role
+accDetails -> delRole ++--: Navigates to
+user -> delRole : Confirms deletion & \nClicks 'Yes - Delete role' button
+delRole -> delUserRoleApi ++: Submit delete request by \nUser ID & Role ID
+delUserRoleApi -> userdb ++: Delete Business Unit User Role (JPA)
+userdb --> delUserRoleApi --: Confirmation of deletion
+delUserRoleApi --> delRole --: Confirmation of deletion (JSON)
+delRole --> accDetails --++: Navigates to & refreshes 'Roles and Permissions' tab
+@enduml

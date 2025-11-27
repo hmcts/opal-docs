@@ -1,0 +1,23 @@
+@startuml
+actor "User" as user
+participant "Account Details" as accDetails <<User Portal>> #LightSkyBlue
+participant "Assign Business Units" as assignBU <<User Portal>> #LightSkyBlue
+participant "Get Business Units" as getBUApi <<User API>> #LightGreen
+participant "Update User Role" as upUserRoleApi <<User API>> #LightGreen
+database "User Database" as userdb #LightGreen
+
+user -> accDetails ++: Clicks 'Manage business unit' link on a User Role
+accDetails -> assignBU ++--: Navigates to
+assignBU -> getBUApi ++: Get Business Units
+getBUApi -> userdb ++: Retrieve business units data (JPA)
+userdb --> getBUApi --: Business Units Data
+getBUApi --> assignBU --: Business Units Data (JSON)
+user -> assignBU : Selects Business Units & \nClicks 'Save selection' button
+
+assignBU -> upUserRoleApi ++: Submit updated list of Business Units \nby User ID & Role ID
+upUserRoleApi -> userdb ++: Update Business Unit User Role (JPA)
+userdb --> upUserRoleApi --: Confirmation of update
+upUserRoleApi --> assignBU --: Confirmation of update (JSON)
+assignBU --> accDetails --++: Navigates to & refreshes 'Roles and Permissions' tab
+
+@enduml
