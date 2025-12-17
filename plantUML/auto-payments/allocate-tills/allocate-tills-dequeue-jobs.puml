@@ -1,0 +1,43 @@
+@startuml
+queue Queue as "Message Queue" #Orange
+participant Consumer as "Allocate Tills Queue Consumer " #LightGreen
+database DB as "Fines DB" #Yellow
+participant Report as "Reporting Service" #LightGreen
+
+activate Queue
+activate Consumer
+
+Consumer --> Queue : Poll for messages (Peek-lock)
+Queue -> Consumer : Lock message, pass contents to consumer
+
+Consumer -->o Consumer : Begin tx
+
+Consumer -> DB ++: Call stored procedure to allocate till.
+
+alt Allocation successful
+
+    DB --> Consumer : Return success
+    Consumer -> Report ++: Generate cash till & cash list reports
+    Report --> Consumer --: Return status
+
+    alt Reports successful
+        Consumer -->o Consumer : Commit tx
+        Consumer --> Queue : Complete message (remove from queue)
+    else Reports failed
+        Consumer -->o Consumer : Rollback tx
+        Consumer --> Queue : Abandon message (release lock)
+    end
+
+else Allocation failed
+    DB --> Consumer : Return failure
+    Consumer -->o Consumer : Rollback tx
+    Consumer --> Queue : Complete message (remove from queue)
+end
+
+opt transient DB failure
+    DB --> Consumer --: Return failure
+    Consumer -->o Consumer : Rollback tx
+    Consumer --> Queue : Abandon message (release lock)
+end
+deactivate Consumer
+@enduml

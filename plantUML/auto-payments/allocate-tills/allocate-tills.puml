@@ -1,0 +1,16 @@
+@startuml
+actor "User" as user
+participant "Process and Allocate \n<i><Allocate Tab></i>" as process <<UI Page>> #lightskyblue
+participant "Allocate Tills" as processJobs <<Fines API>> #lightgreen
+
+queue Queue as "Message Queue" #Orange
+
+user -> process ++: Click "Process" on Process Tab
+process -> processJobs ++ : Submit Process Request \n (with till_id(s))
+processJobs -> Queue ++: Enqueue till_ids individually \n in one broker transaction
+    alt All enqueues successful
+        processJobs --> process : OK Response
+    else Any enqueue fails
+        processJobs --> process : Error Response
+    end
+@enduml
