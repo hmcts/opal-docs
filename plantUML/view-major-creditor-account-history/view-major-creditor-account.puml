@@ -1,0 +1,26 @@
+@startuml
+actor "User" as user
+participant "Account Details \n(History)" as account <<UI Page>> #lightskyblue
+participant "Get Major Creditor Account \nHistory" as getHistoryApi <<Fines API>> #lightgreen
+database "Fines DB" as db <<View>>#lightgreen
+participant "GMAS DAC" as gmasDac <<API>> #yellow
+database "Get Major Creditor Account \nHistory" as getHistorySP <<GOB SP>> #yellow
+
+user ->  account ++ :Navigates to
+account --> getHistoryApi ++: Get history data
+alt Opal Mode
+  getHistoryApi --> db ++ : Get history data (JPA)
+  db --> getHistoryApi : Return history data
+  deactivate db
+else Legacy Mode
+  getHistoryApi --> gmasDac ++ : Get Major Creditor Account History
+  gmasDac --> getHistorySP ++ : Invoke Stored Procedure
+  getHistorySP --> gmasDac -- : Return history data
+  gmasDac --> getHistoryApi -- : Return history data
+  deactivate gmasDac
+end
+getHistoryApi --> account : Return history data (JSON)
+deactivate getHistoryApi
+account -> account : Display history tab
+
+@enduml
