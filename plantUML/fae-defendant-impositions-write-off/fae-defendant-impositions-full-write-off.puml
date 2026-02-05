@@ -1,0 +1,19 @@
+@startuml
+actor User
+participant "Account Details \n(Impositions Tab)" as viewImpositionsTab <<UI Page>> #lightskyblue
+participant "Get Defendant Account Impositions" as getImpositions <<Fines API>> #lightgreen
+participant "Write off Impositions" as writeOffImpositions <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+alt existing flow from TDIA: FAE - View Defendant Impositions
+User -> viewImpositionsTab ++ : Navigates to tab
+viewImpositionsTab --> getImpositions ++ : Defendant Account ID
+getImpositions --> db ++ : Get data (JPA)
+db --> getImpositions -- : Return data (JSON)
+getImpositions --> viewImpositionsTab --: Return data (JSON)
+viewImpositionsTab -> viewImpositionsTab : Display data
+getImpositions --
+end
+User -> viewImpositionsTab : Clicks "Write off" button
+viewImpositionsTab --> writeOffImpositions ++ : Defendant Account ID, Imposition IDs
+@enduml

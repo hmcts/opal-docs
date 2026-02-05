@@ -1,0 +1,41 @@
+@startuml
+participant "HMRC Check processor" as processHmrcCheckService <<Fines Service>> #lightgreen
+participant "HMRC HATEOAS RESTful API service" as hmrcAPIs <<HMRC APIs>> #lightskyblue
+database "Redis Cache" as redis #orange
+database "Fines Database" as db #lightgreen
+
+
+
+processHmrcCheckService -> redis ++ : Check for cached OAuth2 hmrc access token
+alt Token exists and not expired
+redis --> processHmrcCheckService -- : Return cached access_token
+else No valid token
+redis --> processHmrcCheckService -- : No token found
+processHmrcCheckService -> hmrcAPIs ++ : Request OAuth2 access token (client_id, client_secret, scope)
+note right
+Parameters:
+- client_id (from HMRC registration)
+- client_secret (from HMRC registration)
+- grant_type=client_credentials
+- scope (API access subset)
+
+Response:
+- access_token (Bearer token)
+- expires_in (seconds, ~4 hours for user-restricted endpoints)
+
+Process:
+1. On startup or cache miss, request a token.
+2. Store in Redis with TTL = expires_in.
+3. Use token for subsequent API calls.
+end note
+hmrcAPIs --> processHmrcCheckService -- : Return OAuth2 access token (JSON)
+processHmrcCheckService -> redis ++ : Store access_token with expiry (expires_in)
+note right
+The access_token is cached in Redis with a TTL equal to the HMRC-provided expires_in value (minus 10 minutes).
+This ensures tokens are automatically invalidated before the token expires, enforcing refresh logic.
+If expired, the next request triggers a new token fetch.
+end note
+redis --> processHmrcCheckService -- : Acknowledge store
+end alt
+
+@enduml

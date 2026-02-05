@@ -1,0 +1,61 @@
+@startuml
+title User State Retrieval (Tactical Design)
+
+actor "User" as user
+
+participant "Any Page that requires user state\nOr Immediately after login" as anyService <<Any Opal Front End>> #lightgreen
+participant "Get User state Api" as userStateApi <<User Service>> #lightgreen
+participant "Business Event Log Service" as businessEventLogService <<User Service>> #lightgreen
+
+
+database "Redis Cache" as redis #orange
+database "User Database" as db #lightgreen
+
+participant "GMAS DAC" as gmasDac <<API>> #yellow
+database "Get Associated Business Unit ids for user" as getAssociatedBusinessUNitIdsForUser <<GOB SP>> #yellow
+
+
+
+user -> anyService ++ : Makes request that requires user state
+anyService -> redis ++: Fetch user state  (Using AAD id)
+redis --> anyService --: Return user state (if exists)
+
+opt Cache Miss
+anyService -> userStateApi ++ : Get User State
+userStateApi -> db ++ : Get user details (JPA)
+db --> userStateApi --: Return user details
+
+opt Legacy Mode (Tactical Design))
+userStateApi -> gmasDac ++ : Get Associated Business Unit ids and business unit user id's for user (Using email from user details)
+gmasDac --> getAssociatedBusinessUNitIdsForUser ++ : Invoke Stored Procedure
+getAssociatedBusinessUNitIdsForUser --> gmasDac -- : Return legacy  user details
+gmasDac --> userStateApi -- : Return legacy user details
+userStateApi -> redis ++ : Fetch role mappings from cache (Using email from user details)
+redis --> userStateApi -- : Return role mappings
+
+userStateApi -> userStateApi : Combine associated Business Unit ids from DAC with role mappings from cache (Only take roles that match associated Business Unit ids)
+userStateApi -> userStateApi : Check to ensure database entities match exactly to the combined data
+opt Mismatch found
+    userStateApi -> businessEventLogService ++: Log the change i.e 'Role added', 'Role removed', 'BU Role assignment added','BU Role assignment removed'
+    businessEventLogService --> db ++ : Store log entry (JPA)
+    db --> businessEventLogService --
+    businessEventLogService --> userStateApi --
+    userStateApi -> db ++: Update user state to match combined data (JPA)
+    db -> userStateApi --
+end
+end
+
+userStateApi -> db ++ : fetch permissions from the associated roles (JPA)
+db -> userStateApi -- : Return permissions
+userStateApi -> userStateApi: Create user state json
+
+userStateApi --> redis ++: Cache user state (Using AAD id)
+redis --> userStateApi : Cache confirmation
+deactivate redis
+userStateApi --> anyService : Return user state (JSON)
+deactivate userStateApi
+end
+
+anyService -> anyService : Validate user state for the domain
+anyService -> user  -- : Returns response / render page
+@enduml
