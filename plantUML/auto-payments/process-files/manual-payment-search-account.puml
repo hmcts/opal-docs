@@ -1,0 +1,38 @@
+@startuml
+actor "User" as user
+participant "Search Account" as searchAcc <<UI Page>> #lightskyblue
+participant "Search Results" as searchRes <<UI Page>> #lightskyblue
+participant "Confirm Account" as confirmAcc <<UI Page>> #lightskyblue
+participant "Search Defendant Account" as searchDef <<Fines API>> #lightgreen
+participant "Get Defendant Account\nAt A Glance" as getDefAAG <<Fines API>> #lightgreen
+participant "Get Defendant Account\nMaster" as getDefMas <<Fines API>> #lightgreen
+database "Fines DB" as db <<DB View>> #lightgreen
+database "Fines DB " as sp <<DB Function>> #lightgreen
+
+user -> searchAcc ++: Enters search criteria and clicks "Search" button
+searchAcc -> searchDef ++: Calls Search Defendant Account API with search criteria
+searchDef -> db ++: Queries Fines DB for matching defendant accounts
+db --> searchDef --: Returns list of matching defendant accounts
+searchDef --> searchAcc --: Returns search results to Search Account page
+searchAcc -> searchRes ++--: Displays search results to user
+user -> searchRes : Selects a defendant account from search results
+searchRes -> getDefAAG ++: Calls Get Defendant Account At A Glance API\n with selected account ID
+getDefAAG -> db ++: Queries Fines DB for defendant account details
+db --> getDefAAG --: Returns defendant account details
+getDefAAG --> searchRes --: Returns defendant account details
+searchRes -> confirmAcc --++ : Display account details on Confirm Account page
+
+opt Account has been consolidated
+user -> confirmAcc : Checks "Pay into live (master) account" radio button
+user -> confirmAcc : Clicks "Continue" button
+confirmAcc -> getDefMas ++: Calls Get Defendant Account Master API with selected account ID
+getDefMas -> sp ++: Queries Fines DB Stored procedure\nfor master account details
+sp --> getDefMas --: Returns master account ID
+getDefMas --> confirmAcc --: Returns master account ID
+confirmAcc -> getDefAAG ++: Calls Get Defendant Account At A Glance API\n with master account ID
+getDefAAG -> db ++: Queries Fines DB for master account details
+db --> getDefAAG --: Returns master account details
+getDefAAG --> confirmAcc --: Displays master account details on Search Results page
+end
+
+@enduml

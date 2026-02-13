@@ -1,0 +1,15 @@
+@startuml
+actor "User" as user
+participant "Create Till" as createTill <<UI Page>> #lightskyblue
+participant "Get Business Units" as getBu <<Fines API>> #lightgreen
+database "Fines DB" as db <<DB View>> #lightgreen
+
+user -> createTill ++: Navigates to "Create Till" page
+createTill -> getBu ++: Get Business Units where user has correct permission
+getBu -> db ++ : Get Business Units
+getBu <-- db --: Business Units
+createTill <-- getBu --: Populate Business Units dropdown
+
+user -> createTill : Chooses Business Unit \nand clicks "Continue" button"
+
+@enduml

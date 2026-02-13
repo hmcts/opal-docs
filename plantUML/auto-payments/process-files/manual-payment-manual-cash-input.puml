@@ -1,0 +1,19 @@
+@startuml
+actor "User" as user
+participant "Manual Cash Input" as mci <<UI Page>> #lightskyblue
+participant "Get Business Units" as getBu <<Fines API>> #lightgreen
+participant "Get Tills" as tills <<Fines API>> #lightgreen
+database "Fines DB" as db <<DB View>> #lightgreen
+
+user -> mci --++: Navigates to
+mci -> getBu ++: Get Business Units where user has correct permission
+getBu -> db ++ : Get Business Units
+getBu <-- db --: Business Units
+mci <-- getBu --: Store user Business Units
+
+mci -> tills ++: List of Business Unit IDs, \n Allocated = 'false', \n Auto_payment = 'false'
+tills -> db ++ : Get Tills data
+tills <-- db --: Tills data
+mci <-- tills --: Populate Allocate Tills table
+
+@enduml
