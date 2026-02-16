@@ -1,0 +1,64 @@
+@startuml
+
+start
+:Call made to public void addOrReplaceRoleInformationOnUser(UserEntity user, long roleId, Set<Long> businessUnitIds);
+
+if (Does the roleId exist in the database?) then (no)
+   :Throw an error indicating the role does not exist (This error must indicate the role_id that could not be found);
+   stop
+endif
+-> yes;
+
+repeat : For every businessUnitIds passed into this method;
+  if (Does the business unit have an associated entry in the business_unit_users table for the user_id and business_unit_id) then (no)
+    if (Is the application in legacy mode?) then (yes)
+      :Throw an error indicating that the business unit id provided is not valid for the user. (This error must indicate the business_unit_id that was invalid and the user_id that was used in the method parameters);
+      stop
+    endif
+    -> no;
+    :Create an entry in the business_unit_users table for the user_id and business_unit_id;
+  endif
+  :Store the business_unit_user_ids into a list for processing (businessUnitUserIds);
+repeat while (has another business unit user ids associated to the role from the database?) is (yes - get next business unit user id associated to the role);
+
+
+:Fetch all the data that is held on the business_unit_user_roles table for the user and roleId.;
+
+repeat :For every business unit user id that was fetched from the database for this user and role;
+    if (Does the business unit user id exist in the list of business unit user ids created from the business unit ids earlier (businessUnitUserIds)) then (no)
+       :Add this business unit user id to a list of business unit user ids that need to be removed from the role for this user (removeBusinessUnitUserIds list));
+    else (yes)
+        :Remove the business unit user id from the set of business unit user ids we created earlier (businessUnitUserIds)
+        As we do not need to add this business unit user id to the role for this user as it already exists in the database;
+    endif
+repeat while (has another business unit user ids associated to the role from the database?) is (yes - get next business unit user id associated to the role)
+
+:Any remaining business unit user ids in the businessUnitUserIds set at this point should be added to business_unit_user_roles table for this user and this role.;
+if (Does the removeBusinessUnitUserIds list contains data) then (yes)
+:All business unit user id's in this list should be removed from the business_unit_user_roles table for this user and this role;
+else (no)
+endif
+
+if (Does the businessUnitUserIds list contains data) then (yes)
+:All business unit user id's in this list should be added from the business_unit_user_roles table for this user and this role;
+else (no)
+endif
+
+if (When we fetched data from the business_unit_user_roles table for this user and role was any data found?) then (yes)
+    :The logBusinessEvent method from PO-2922 should be called with the following details:
+    businessEventLogType = 'BUSINESS_UNITS_ASSOCIATED_TO_ROLE_AMENDED'
+    subjectUserId = the user id from the userEntity that was provided in the method parameters
+    eventDetails = a DTO from the class outlined in the businessEventLogType enum. That contains the following fields:
+    role_id the role id that was amended
+    added_business_unit_ids' an array of business_unit_id's that was added to the business_unit_user_roles table for the user
+    removed_business_unit_ids' an array of business_unit_id's that was removed to the business_unit_user_roles table for the user;
+else (no)
+    :The logBusinessEvent method from PO-2922 should be called with the following details:
+    businessEventLogType = 'ROLE_ASSIGNED_TO_USER'
+    subjectUserId = the user id from the userEntity that was provided in the method parameters
+    eventDetails = a DTO from the class outlined in the businessEventLogType enum. That contains the following fields:
+    role_id the role id that was added
+    added_business_unit_ids an array of business_unit_id's that was added to the business_unit_user_roles table for the user;
+endif
+stop
+@enduml

@@ -1,0 +1,68 @@
+@startuml
+
+start
+
+:Call the new legacy API to fetch legacy user details (PO-2842) by passing the users email address as the parameter;
+if (Has the legacy API found data for the user?) then (no)
+   :Log an error indicating that the legacy API did not return any data for the user;
+   stop
+endif
+
+repeat :For every business unit id and business unit user id combination associated to the user (That came from the legacy API response PO-2842);
+    if (Does the business unit user id exist on the business_unit_users table) then (yes)
+        if (Is the user on the database the same user as the one we are checking for) then (no)
+            :Update the business_unit_users table to change the user associated to the business unit user id to the user we are refreshing data for;
+        else (yes)
+        endif
+        if (Is the business unit on the database the same business unit we are checking for) then (no)
+            :Update the business_unit_users table to change the business unit associated to the business unit user id to the business unit we are refreshing data for;
+        else (yes)
+        endif
+    else (no)
+        :Create an entry in the business_unit_users table for the user_id and business_unit_id and business_unit_user_id from the legacy API response;
+    endif
+repeat while (has another business unit user ids associated to the user?) is (yes - get next business unit associated to the user)
+
+-> yes;
+:Fetch the role and business unit user id mappings from the cache (PO-2842).
+Using key Fetch ROLE_MAPPING_USER_<AZURE_SUBJECT> where <AZURE_SUBJECT> is the azure subject stored for the user in the opal database;
+if (Has a cached value been found for this user?) then (no)
+   :Log an error indicating that the user did not exist in the role mapping cache;
+   stop
+endif
+-> yes;
+
+
+repeat :For every role from the role mapping cache;
+    repeat :For every business unit id associated to the role;
+         if (Was the business unit id returned for the user when the legacy API was called (PO-2842)?) then (no)
+            :Remove the business unit from the list of business units associated to the role (This should only update the local version of the data not the cached version);
+         else (yes)
+         endif
+    repeat while (has another business unit user ids associated to the role?) is (yes - get next business unit associated to the role)
+->no;
+:Call the addOrReplaceRoleInformationOnUser function created within PO-2917
+This will replace all business unit user ids associated to the role for the given user with the updated list of business unit user ids
+This will unassign the business unit user id's from the role for this user.
+and assign any new business unit user id's to the role for this user that they do not currently have.;
+repeat while (has more roles?) is (yes - Get next role)
+->no;
+
+:Check if the user has any roles assigned in the database that was not returned apart of the role mapping cache;
+if (User has roles assigned in the database that were not returned as part of the role mapping cache?) then (yes)
+  :Call deleteRoleFromUser function created within PO-2918;
+else (no)
+endif
+
+if (Does the user have an activation date?) then (no)
+   :Call the activateUser function that was created with in PO-2919;
+else (yes)
+endif
+
+if (Has errors have occurred anywhere in this process?) then (yes)
+   :Remove all roles from the user in the database;
+   :Log an error indicating that an error occurred during the legacy user data refresh process and that all roles have been removed from the user this is to prevent any potential security risks.;
+else (no)
+endif
+stop
+@enduml

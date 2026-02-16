@@ -16,14 +16,14 @@ database "Get Associated Business Unit ids for user" as getAssociatedBusinessUNi
 
 
 
-user -> anyService ++ : Makes request that requires user state
-anyService -> redis ++: Fetch user state  (Using AAD id)
-redis --> anyService --: Return user state (if exists)
+user -[#red]> anyService ++ : Makes request that requires user state
+anyService -[#red]> redis ++: Fetch user state  (Using AAD id)
+redis -[#red]-> anyService --: Return user state (if exists)
 
 opt Cache Miss
-anyService -> userStateApi ++ : Get User State
-userStateApi -> db ++ : Get user details (JPA)
-db --> userStateApi --: Return user details
+anyService -[#red]> userStateApi ++ : Get User State
+userStateApi -[#red]> db ++ : Get user details (JPA)
+db -[#red]-> userStateApi --: Return user details
 
 opt Legacy Mode (Tactical Design))
 userStateApi -> gmasDac ++ : Get Associated Business Unit ids and business unit user id's for user (Using email from user details)
@@ -45,17 +45,17 @@ opt Mismatch found
 end
 end
 
-userStateApi -> db ++ : fetch permissions from the associated roles (JPA)
-db -> userStateApi -- : Return permissions
-userStateApi -> userStateApi: Create user state json
+userStateApi -[#red]> db ++ : fetch permissions from the associated roles (JPA)
+db -[#red]> userStateApi -- : Return permissions
+userStateApi -[#red]> userStateApi: Create user state json
 
-userStateApi --> redis ++: Cache user state (Using AAD id)
-redis --> userStateApi : Cache confirmation
+userStateApi -[#red]-> redis ++: Cache user state (Using AAD id)
+redis -[#red]-> userStateApi : Cache confirmation
 deactivate redis
-userStateApi --> anyService : Return user state (JSON)
+userStateApi -[#red]-> anyService : Return user state (JSON)
 deactivate userStateApi
 end
 
-anyService -> anyService : Validate user state for the domain
-anyService -> user  -- : Returns response / render page
+anyService -[#red]> anyService : Validate user state for the domain
+anyService -[#red]> user  -- : Returns response / render page
 @enduml
