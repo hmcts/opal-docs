@@ -1,16 +1,16 @@
 @startuml
 actor User
 participant "Frontend" as Frontend
-participant "getMinorCreditorAccountParty API" as API
+participant "getMinorCreditorAccount API" as API
 database "In-Memory Cache" as Cache
 database "opal-fines-service" as Backend
 
 == Fetch Fresh Data on Tab Selection ==
 
 User -> Frontend : Selects Creditor tab
-Frontend -> API : getMinorCreditorAccountParty()
+Frontend -> API : getMinorCreditorAccount()
 API -> Cache : Clear in-memory cache
-API <-> Backend : Call /opal-fines-service/minor-creditor-accounts/{id}/minor-creditor-account-parties/{id} 
+API <-> Backend : Call /opal-fines-service/minor-creditor-accounts/{id}
 API -> Cache : Store response in memory
 API --> Frontend : Return structured data\n(keys always present, null if missing)
 Frontend --> User : Display updated account data
