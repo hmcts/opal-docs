@@ -7,8 +7,7 @@ participant Report as "Reporting Service" #LightGreen
 activate Queue
 activate Consumer
 
-Consumer --> Queue : Poll for messages (Peek-lock)
-Queue -> Consumer : Lock message, pass contents to consumer
+Consumer --> Queue : Poll for messages (Peek-lock), \n lock queue globally with session_id
 
 Consumer -->o Consumer : Begin tx
 

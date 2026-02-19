@@ -1,13 +1,14 @@
 @startuml
 actor "User" as user
-participant "Manual Cash Input" as process <<UI Page>> #lightskyblue
+participant "Process and Allocate \n<i><Allocate Tab></i>" as process <<UI Page>> #lightskyblue
 participant "Allocate Tills" as processJobs <<Fines API>> #lightgreen
 
 queue Queue as "Message Queue" #Orange
 
 user -> process ++: Click "Process" on Process Tab
 process -> processJobs ++ : Submit Process Request \n (with till_id(s))
-processJobs -> Queue ++: Enqueue till_ids individually \n in one broker transaction
+processJobs -> Queue ++: Enqueue till_ids individually
+note right of processJobs: Apply session_id to each message \nto allow global session based locking on consumer
     alt All enqueues successful
         processJobs --> process : OK Response
     else Any enqueue fails
