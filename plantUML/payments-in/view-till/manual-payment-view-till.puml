@@ -1,0 +1,16 @@
+@startuml
+actor "User" as user
+participant "Manual Cash Input" as mci <<UI Page>> #lightskyblue
+participant "Till Details" as till <<UI Page>> #lightskyblue
+participant "Get Tills" as tills <<Fines API>> #lightgreen
+database "Fines DB" as db #lightgreen
+
+user -> mci --++: Clicks a Till number in Till list
+mci -> till --++: Navigates to Till Details page \n (with till_id)
+
+till -> tills ++: Get Till data by till_id
+tills -> db ++ : Get Till data (JPA)
+tills <-- db --: Till data
+till <-- tills --: Display Till data
+
+@enduml

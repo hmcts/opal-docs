@@ -6,7 +6,7 @@ participant "Get Interface Jobs Summary" as interfaceFiles <<Fines API>> #lightg
 database "Fines DB" as db <<DB View>> #lightgreen
 
 user -> proAll --++: Navigates to Allocate Tab
-proAll -> tills ++: List of Business Unit IDs, \n Allocated = 'false', \n Auto_payment = 'true'
+proAll -> tills ++: List of Business Unit IDs, \n Status = 'Created' or 'Failed', \n Auto_payment = 'true'
 tills -> db ++ : Get Tills & additional auto payment info
 tills <-- db --: Tills data & additional auto payment info
 proAll <-- tills --: Populate Allocate Tab
