@@ -1,0 +1,12 @@
+@startuml
+actor "User" as user
+participant "Suspense Details" as suspenseDetails <<UI Page>> #lightskyblue
+participant "Get Mappings" as getMappings <<Fines API>> #lightgreen
+
+user -> suspenseDetails ++: Navigates to "Suspense Details" page
+suspenseDetails -> getMappings ++: Get Mappings (Method of Payment, Suspense Reason, Payment Source)
+getMappings --> suspenseDetails --: Mappings (JSON)
+
+suspenseDetails -> suspenseDetails : Populate menu items
+
+@enduml
