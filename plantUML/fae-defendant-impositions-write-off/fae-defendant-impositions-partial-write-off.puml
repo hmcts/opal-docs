@@ -1,19 +1,41 @@
 @startuml
 actor User
 participant "Account Details \n(Impositions Tab)" as viewImpositionsTab <<UI Page>> #lightskyblue
+participant "Write Off Screen" as viewWriteOffScreen <<UI Page>> #lightskyblue
 participant "Get Defendant Account Impositions" as getImpositions <<Fines API>> #lightgreen
 participant "Write off Impositions" as writeOffImpositions <<Fines API>> #lightgreen
+participant "Get write off codes" as getWriteOffCodes <<Fines API>> #lightgreen
 database "Fines Database" as db #lightgreen
 
+alt existing flow from TDIA: FAE - View Defendant Impositions
 User -> viewImpositionsTab ++ : Navigates to tab
 viewImpositionsTab --> getImpositions ++ : Defendant Account ID
-alt existing flow from TDIA: FAE - View Defendant Impositions
 getImpositions --> db ++ : Get data (JPA)
 db --> getImpositions -- : Return data (JSON)
 getImpositions --> viewImpositionsTab --: Return data (JSON)
 viewImpositionsTab -> viewImpositionsTab : Display data
 getImpositions --
-alt end
+end
 User -> viewImpositionsTab : Clicks "Write off" button
-viewImpositionsTab --> writeOffImpositions ++ : Defendant Account ID, Imposition IDs
+viewImpositionsTab -> viewWriteOffScreen ++ : Navigate to write off screen
+viewImpositionsTab--
+viewWriteOffScreen -> getWriteOffCodes ++ : Request write off codes
+getWriteOffCodes --> db ++ : Get data (JPA)
+db --> getWriteOffCodes -- : Return data (JSON)
+getWriteOffCodes --> viewWriteOffScreen -- : Return data (JSON)
+viewWriteOffScreen -> viewWriteOffScreen : Display data
+
+User -> viewWriteOffScreen : Selects impositions to write off
+viewWriteOffScreen -> viewWriteOffScreen : Displays amounts for selected impositions asking the user to enter amount to write off
+User -> viewWriteOffScreen : Enters amounts for each impositions to write off
+User -> viewWriteOffScreen : Selects write off category, reason, enters details, and clicks "Write off" button
+
+viewWriteOffScreen --> writeOffImpositions ++ : Defendant Account ID, action type = partial. With all impositions and amounts to write off
+writeOffImpositions --> db ++ : Update data (Stored Procedure - p_create_write_off)
+db --> writeOffImpositions -- : Return success/failure (JSON)
+writeOffImpositions --> viewWriteOffScreen -- : Return success/failure (JSON)
+viewWriteOffScreen --> viewImpositionsTab ++ : Refresh impositions list
+viewWriteOffScreen--
+viewImpositionsTab -> viewImpositionsTab : Display data
+viewImpositionsTab --> User : Exits
 @enduml
