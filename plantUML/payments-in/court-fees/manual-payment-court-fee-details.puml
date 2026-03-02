@@ -1,0 +1,14 @@
+@startuml
+actor "User" as user
+participant "Court Fee Details" as courtFeeDetails <<UI Page>> #lightskyblue
+participant "Get Court Fees" as getCourtFees <<Fines API>> #lightgreen
+database "Fines DB" as db <<DB Table>> #lightgreen
+
+user -> courtFeeDetails ++: Navigates to "Court Fee Details" page
+courtFeeDetails -> getCourtFees ++: Get Court Fees (business_unit_id)
+getCourtFees -> db ++ : Get Court Fees (JPA/Hibernate)
+getCourtFees <-- db --: Court Fees
+courtFeeDetails <-- getCourtFees --: Court Fees (JSON)
+courtFeeDetails -> courtFeeDetails : Populate Court Fee code type-ahead
+
+@enduml
