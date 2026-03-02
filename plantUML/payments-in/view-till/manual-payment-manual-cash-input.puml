@@ -5,7 +5,7 @@ participant "Get Business Units" as getBu <<Fines API>> #lightgreen
 participant "Get Tills" as tills <<Fines API>> #lightgreen
 database "Fines DB" as db <<DB View>> #lightgreen
 
-user -> mci --++: Navigates to
+user -> mci ++: Navigates to
 mci -> getBu ++: Get Business Units where user has correct permission
 getBu -> db ++ : Get Business Units
 getBu <-- db --: Business Units

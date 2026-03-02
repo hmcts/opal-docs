@@ -1,17 +1,27 @@
 @startuml
 actor "User" as user
 participant "Process and Allocate \n<i><Allocate Tab></i>" as process <<UI Page>> #lightskyblue
-participant "Allocate Tills" as processJobs <<Fines API>> #lightgreen
-
+participant "Allocate Tills" as allocateTills <<Fines allocateTillsAPI>> #lightgreen
+database "Fines DB" as db <<Tills table>> #Yellow
 queue Queue as "Message Queue" #Orange
 
 user -> process ++: Click "Process" on Process Tab
-process -> processJobs ++ : Submit Process Request \n (with till_id(s))
-processJobs -> Queue ++: Enqueue till_ids individually
-note right of processJobs: Apply session_id to each message \nto allow global session based locking on consumer
-    alt All enqueues successful
-        processJobs --> process : OK Response
+process -> allocateTills ++ : Submit Process Request \n (with till_id(s))
+allocateTills -->o allocateTills : Begin tx
+allocateTills -> db ++: Update each status to PROCESSING where status = CREATED or FAILED
+deactivate db
+allocateTills -> Queue ++: Enqueue interface_job_ids individually \n in one broker transaction
+note right of allocateTills: Apply session_id to each message \nto allow global session based locking on consumer
+alt All enqueues successful
+        allocateTills -->o allocateTills : Commit DB tx, status = PROCESSING
+        alt DB update fails
+            allocateTills --> process : Error Response, status = CREATED or FAILED
+            note right allocateTills : Message has been enqueued but will fail downstream
+        else DB update successful
+            allocateTills --> process : OK Response, status PROCESSING
+        end
     else Any enqueue fails
-        processJobs --> process : Error Response
+        allocateTills -->o allocateTills :  Rollback DB tx, status = CREATED or FAILED
+        allocateTills --> process : Error Response, status = CREATED or FAILED
     end
 @enduml
