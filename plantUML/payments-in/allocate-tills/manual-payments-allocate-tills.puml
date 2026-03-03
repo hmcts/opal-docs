@@ -10,7 +10,7 @@ process -> allocateTills ++ : Submit Process Request \n (with till_id(s))
 allocateTills -->o allocateTills : Begin tx
 allocateTills -> db ++: Update each status to PROCESSING where status = CREATED or FAILED
 deactivate db
-allocateTills -> Queue ++: Enqueue interface_job_ids individually \n in one broker transaction
+allocateTills -> Queue ++: Enqueue till_ids individually \n in one broker transaction
 note right of allocateTills: Apply session_id to each message \nto allow global session based locking on consumer
 alt All enqueues successful
         allocateTills -->o allocateTills : Commit DB tx, status = PROCESSING
