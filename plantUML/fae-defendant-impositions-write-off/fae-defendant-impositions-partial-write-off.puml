@@ -11,7 +11,7 @@ alt existing flow from TDIA: FAE - View Defendant Impositions
 User -> viewImpositionsTab ++ : Navigates to tab
 viewImpositionsTab --> getImpositions ++ : Defendant Account ID
 getImpositions --> db ++ : Get data (JPA)
-db --> getImpositions -- : Return data (JSON)
+db --> getImpositions -- : Return data
 getImpositions --> viewImpositionsTab --: Return data (JSON)
 viewImpositionsTab -> viewImpositionsTab : Display data
 getImpositions --
@@ -21,9 +21,16 @@ viewImpositionsTab -> viewWriteOffScreen ++ : Navigate to write off screen
 viewImpositionsTab--
 viewWriteOffScreen -> getWriteOffCodes ++ : Request write off codes
 getWriteOffCodes --> db ++ : Get data (JPA)
-db --> getWriteOffCodes -- : Return data (JSON)
+db --> getWriteOffCodes -- : Return data
 getWriteOffCodes --> viewWriteOffScreen -- : Return data (JSON)
+
+viewWriteOffScreen --> getImpositions ++ : Defendant Account ID
+getImpositions --> db ++ : Get data (JPA)
+db --> getImpositions -- : Return data
+getImpositions --> viewWriteOffScreen --: Return data (JSON)
 viewWriteOffScreen -> viewWriteOffScreen : Display data
+getImpositions --
+
 
 User -> viewWriteOffScreen : Selects impositions to write off
 viewWriteOffScreen -> viewWriteOffScreen : Displays amounts for selected impositions asking the user to enter amount to write off
@@ -32,7 +39,7 @@ User -> viewWriteOffScreen : Selects write off category, reason, enters details,
 
 viewWriteOffScreen --> writeOffImpositions ++ : Defendant Account ID, action type = partial. With all impositions and amounts to write off
 writeOffImpositions --> db ++ : Update data (Stored Procedure - p_create_write_off)
-db --> writeOffImpositions -- : Return success/failure (JSON)
+db --> writeOffImpositions -- : Return success/failure
 writeOffImpositions --> viewWriteOffScreen -- : Return success/failure (JSON)
 viewWriteOffScreen --> viewImpositionsTab ++ : Refresh impositions list
 viewWriteOffScreen--
