@@ -1,0 +1,12 @@
+@startuml
+actor "User" as user
+participant "Payment Details" as paymentDetails <<UI Page>> #lightskyblue
+participant "Get Mappings" as getMappings <<Fines API>> #lightgreen
+
+user -> paymentDetails ++: Navigates to "Payment Details" page
+paymentDetails -> getMappings ++: Get Mappings (Method of Payment, Source)
+getMappings --> paymentDetails --: Mappings (JSON)
+
+paymentDetails -> paymentDetails : Populate menu items
+
+@enduml
