@@ -34,7 +34,7 @@ alt Allocation successful
 else Allocation failed
     DB --> Consumer : Return failure
     Consumer -->o Consumer : Rollback tx
-    Consumer -> DB: insert interface_message set status to FAILED
+    Consumer -> DB: Update till status to FAILED
     Consumer --> Queue : Complete message (remove from queue)
 end
 
