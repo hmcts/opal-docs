@@ -1,0 +1,20 @@
+@startuml
+title Payout Creditors - Get Central Fund Balance
+
+actor "User" as user
+participant "Payout - HMCTS/Other \n<i><UI></i>" as hmctsPage <<UI Page>> #lightskyblue
+participant "Get Central Fund" as getCentralFund <<Fines API>> #lightgreen
+participant "Get Major Creditor Account \nHeader Summary" as getHeaderSummary <<Fines API>> #lightgreen
+database "Fines DB" as db #Yellow
+
+user -> hmctsPage ++: Open / refresh page
+hmctsPage -> getCentralFund ++: GET /central-funds/{businessUnitId}
+getCentralFund -> db ++: Read Central Fund creditor account \nfor business unit
+db --> getCentralFund --: Return Central Fund details \nincluding creditor_account_id
+getCentralFund --> hmctsPage --: 200 OK \n(Central Fund details \nincluding creditor_account_id)
+
+hmctsPage -> getHeaderSummary ++: GET /major-creditor-accounts/{creditorAccountId}/header-summary
+getHeaderSummary -> db ++: Read header summary \nfrom v_major_creditor_account_header
+db --> getHeaderSummary --: Return header summary \nincluding awaiting_payout
+getHeaderSummary --> hmctsPage --: 200 OK \n(header summary \nincluding awaiting_payout)
+@enduml
