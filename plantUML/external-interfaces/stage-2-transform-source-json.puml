@@ -1,0 +1,35 @@
+@startuml
+title Transform the BAIS file into source JSON then process it into transformed json that will then be used for down stream processing
+
+queue "Fines External Interface queue" as finesExternalInterfaceQueue <<Queue>> #lightgreen
+participant "Opal Fines Service" as finesService <<Fines Service>> #LightSkyBlue
+
+participant "Get interface file content API" as getInterfaceFileAPI <<File Handling Service>> #LightSkyBlue
+participant "Add Interface File API" as addInterfaceFileAPI <<File Handling Service>> #LightSkyBlue
+database "Opal fines Database" as finesDb #LightGreen
+database "Opal File Handling Database" as fileHandlingDb #LightGreen
+database "Opal File Handling Blob Storage" as fileHandlingBlobStorage #LightGreen
+
+finesExternalInterfaceQueue -> finesService ++ : Message with file metadata and location in blob storage
+finesService -> getInterfaceFileAPI ++ : Request file content using metadata from message
+getInterfaceFileAPI -> fileHandlingDb ++ : Retrieve file metadata from database using metadata from message (JPA)
+fileHandlingDb --> getInterfaceFileAPI -- : Return file metadata including location in blob storage
+getInterfaceFileAPI -> fileHandlingBlobStorage ++ : Retrieve file from blob storage using location metadata
+fileHandlingBlobStorage --> getInterfaceFileAPI -- : Return file content
+getInterfaceFileAPI --> finesService -- : Return file content
+finesService -> finesService : Read the file contents
+finesService -> finesDb ++ : Fetch necessary data from database to transform source JSON into transformed JSON (JPA)
+finesDb --> finesService -- : Return data
+finesService -> finesService : Transform source JSON into transformed JSON using the file content and data retrieved from database
+finesService -> addInterfaceFileAPI ++
+addInterfaceFileAPI -> fileHandlingBlobStorage ++ : Store transformed JSON in blob storage
+fileHandlingBlobStorage --> addInterfaceFileAPI -- : Confirmation of storage with location metadata
+addInterfaceFileAPI -> fileHandlingDb ++ : Store metadata for transformed JSON in database
+fileHandlingDb --> addInterfaceFileAPI -- : Confirmation of update
+addInterfaceFileAPI --> finesService -- : Confirmation of storage with location metadata
+finesService -> finesDb ++ : Store a record of the transformed file in the fines database (JPA)
+finesDb --> finesService -- : Confirmation of update
+finesService -> finesExternalInterfaceQueue -- : dequeue message
+
+
+@enduml

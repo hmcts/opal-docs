@@ -1,0 +1,36 @@
+@startuml
+title Read file from BAIS and store in OPAL
+participant "Kubernetes CronJob" as cronjob <<External System>> #LightCoral
+participant "Opal File Handling Service" as fileHandlingService <<File Handling Service>> #LightSkyBlue
+database "Opal File Handling Database" as fileHandlingDb #LightGreen
+database "Opal File Handling Blob Storage" as fileHandlingBlobStorage #LightGreen
+database "BAIS SFTP Server" as baisSftpServer <<External System>> #LightCoral
+
+cronjob -> fileHandlingService ++ : Trigger file storage process
+fileHandlingService -> fileHandlingService : Checks if feature flag for this Job is enabled
+alt Feature flag disabled
+    fileHandlingService -> fileHandlingService : Log that the job is skipped and exit process
+else Feature flag enabled
+    fileHandlingService -> baisSftpServer ++ : Connect to SFTP server and retrieve files
+    baisSftpServer --> fileHandlingService -- : Return files
+    fileHandlingService --> fileHandlingDb ++ : Check for existing file metadata to prevent duplicates (Must have status of successful to be a duplicate) (JPA)
+    fileHandlingDb --> fileHandlingService -- : Return existing metadata if found or confirmation of no duplicates
+
+    alt No duplicates found
+        fileHandlingService -> fileHandlingService : Start transaction
+        fileHandlingService -> fileHandlingBlobStorage ++ : Store files in blob storage
+        fileHandlingBlobStorage --> fileHandlingService -- : Confirmation of storage
+        fileHandlingService -> fileHandlingDb ++ : Add row to database with file metadata (JPA) with a success status
+        fileHandlingDb --> fileHandlingService -- : Confirmation of update
+        fileHandlingService -[#red]> fileHandlingService: Process BAIS file if applicable (Out of scope for this TDIA)
+        fileHandlingService -> fileHandlingService : Commit transaction
+        fileHandlingService -> baisSftpServer ++ : Delete BAIS files we have successfully stored in opal and have metadata updated in database
+        baisSftpServer --> fileHandlingService -- : Confirmation of deletion
+    else Duplicates found
+        fileHandlingService -> fileHandlingService : Log error that duplicates were found
+        fileHandlingService -> fileHandlingDb ++ : Add row to database with file metadata (JPA) with a failed status and error indicating duplicates found
+        fileHandlingDb --> fileHandlingService -- : Confirmation of update
+    end
+end
+fileHandlingService -> cronjob -- : Exit process
+@enduml

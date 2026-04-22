@@ -1,0 +1,24 @@
+@startuml
+title Transform the BAIS file into source JSON and add to processing queue
+
+participant "Opal File Handling Service" as fileHandlingService <<File Handling Service>> #LightSkyBlue
+database "Opal File Handling Blob Storage" as fileHandlingBlobStorage #LightGreen
+database "Opal File Handling Database" as fileHandlingDb #LightGreen
+queue "Fines External Interface queue" as finesExternalInterfaceQueue <<Queue>> #lightgreen
+
+
+fileHandlingService -> fileHandlingService ++: Read source file
+fileHandlingService -> fileHandlingDb ++ : Fetch necessary data from database to transform source JSON into transformed JSON (JPA) (BU / Area, opal processing domain, etc)
+fileHandlingDb --> fileHandlingService -- : Return data
+fileHandlingService -> fileHandlingService : Transform source JSON into transformed JSON using the file content and data retrieved from database
+fileHandlingService -> fileHandlingBlobStorage ++ : Store source JSON in blob storage
+fileHandlingBlobStorage --> fileHandlingService -- : Confirmation of storage with location metadata
+fileHandlingService -> fileHandlingDb ++ : Store file metadata in database (JPA) with a success status
+fileHandlingDb --> fileHandlingService -- : Confirmation of update
+
+fileHandlingService -> finesExternalInterfaceQueue ++ : Send message to queue with file metadata and location in blob storage
+finesExternalInterfaceQueue --> fileHandlingService -- : Confirmation of message sent
+fileHandlingService -> fileHandlingDb ++ : Mark status as successfully processed in database (JPA) or if error occurs mark as failed with error message in database (JPA)
+fileHandlingDb --> fileHandlingService -- : Confirmation of update
+
+@enduml

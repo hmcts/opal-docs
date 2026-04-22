@@ -1,0 +1,29 @@
+@startuml
+title Get interface file content API
+participant "Any opal service" as anyOpalService <<Any Opal Service>> #LightSkyBlue
+participant "Opal File Handling Service" as fileHandlingService <<File Handling Service>> #LightSkyBlue
+database "Opal File Handling Database" as fileHandlingDb #LightGreen
+database "Opal File Handling Blob Storage" as fileHandlingBlobStorage #LightGreen
+
+anyOpalService -> fileHandlingService ++ : Request to get content of interface file
+fileHandlingService -> fileHandlingService : Checks if feature flag for this API is enabled
+alt Feature flag disabled
+   fileHandlingService -> anyOpalService : Return error response indicating API is unavailable
+else Feature flag enabled
+    fileHandlingService -> fileHandlingDb ++ : Query database for file metadata using provided file identifier
+    fileHandlingDb --> fileHandlingService -- : Return file metadata if found or indication that file was not found
+    alt File metadata not found
+        fileHandlingService -> anyOpalService : Return error response indicating file not found
+    else File metadata found
+        fileHandlingService -> fileHandlingBlobStorage ++ : Retrieve file content from blob storage using metadata
+        fileHandlingBlobStorage --> fileHandlingService --: Return file content or error if retrieval fails
+        alt File content retrieval successful
+            fileHandlingService -> anyOpalService: Return file content in response
+        else File content retrieval fails
+            fileHandlingService -> anyOpalService : Return error response indicating file retrieval failed
+        end
+    end
+end
+
+
+@enduml
