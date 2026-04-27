@@ -1,0 +1,39 @@
+@startuml
+title Account reference number transformation
+start
+repeat:For each transaction in a Banking Interface file;
+if (Payment Type is Cash (Transaction code = 11)) then (yes)
+    if (Transaction Code = 00,15,93 or 99?) then (yes)
+        if (Transaction code = 15 or 93?) then (yes)
+            :Set Transaction Code = 99;
+        else (no)
+        endif
+        if (Is a valid account reference (8 digits followed by a letter)\n And an Opal Account matching that Account Reference and Business Unit) then (yes)
+            :The original Account Reference text is\na valid Opal Account Reference\nNo processing required;
+        else (no)
+            if (Account reference text is not exclusively an account reference but the text does contain a valid account reference within it\n(I.e has a prefix and/or suffix. We will use pattern matching to achieve this) then (yes)
+                :We have identified a valid Opal Account\nOverwrite the Account Reference text with that identified Opal Account Reference\n(Removing the prefix and/or suffix text from the original Account Reference text);
+            else (no)
+                if (The Account Reference text is an APR for this Business Unit\nOr the originators name text is an APR for this business unit) then (yes)
+                    :Set the Account Reference text to be\nthe Opal Account reference for that APR;
+                    if (The Business Unit of that Opal Account is different\nfrom the Business Unit of this Transaction) then (yes)
+                        :Set the Business Unit of this Interface File to\nthe Business Unit of that Opal Account;
+                        :Ensure Destination sort code and Destination\naccount number are modified to reflect any changes\nin the Business Unit;
+                    else (no)
+                    endif
+                else (no)
+                    :Do nothing with the Account Reference text\nWe couldn't identify a valid Opal Account;
+                endif
+            endif
+        endif
+    else (no);
+        :Remove this Transaction from the Transactions list\nof the Banking Interface File;
+    endif
+else (no)
+endif
+        :Keep a running total of the Amount of Transactions\nTotal Amount = Total amount + Amount for this transaction ;
+repeat while (Any more transactions?) is (yes - process the next transaction);
+:Set the Total amount value on the Banking Interface File;
+:Set Record Count = number of Transactions in the Transactions List;
+stop
+@enduml

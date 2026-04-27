@@ -18,9 +18,9 @@ getInterfaceFileAPI -> fileHandlingBlobStorage ++ : Retrieve file from blob stor
 fileHandlingBlobStorage --> getInterfaceFileAPI -- : Return file content
 getInterfaceFileAPI --> finesService -- : Return file content
 finesService -> finesService : Read the file contents
-finesService -> finesDb ++ : Fetch necessary data from database to transform source JSON into transformed JSON (JPA)
+finesService -> finesDb ++ : Look-up the Opal Account ID from the provided reference(s) in the source json data (JPA)
 finesDb --> finesService -- : Return data
-finesService -> finesService : Transform source JSON into transformed JSON using the file content and data retrieved from database
+finesService -> finesService : Transform source JSON into transformed JSON using the file content and data retrieved from database using the ANT process
 finesService -> addInterfaceFileAPI ++
 addInterfaceFileAPI -> fileHandlingBlobStorage ++ : Store transformed JSON in blob storage
 fileHandlingBlobStorage --> addInterfaceFileAPI -- : Confirmation of storage with location metadata
