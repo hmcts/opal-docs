@@ -1,0 +1,27 @@
+@startuml
+actor "User" as user
+participant "View Account \n(Impositions tab)" as viewpage <<UI Page>> #lightskyblue
+participant "Select Write-Off" as selectWO <<UI Page>> #lightskyblue
+participant "Reverse Write-Off" as revWO <<UI Page>> #lightskyblue
+participant "Get Defendant Account Impositions" as getImp <<Fines API>> #lightgreen
+participant "Update Defendant Account Impositions \nReverse Write-Off" as upImp <<Fines API>> #lightgreen
+database "Impositions" as db <<Fines DB>>  #yellow
+database "Reverse Write-Off" as sp <<Fines SP>>  #yellow
+user ++
+user -> selectWO ++: Select Write-Off & Click 'continue' button
+selectWO -> revWO --++: Navigate to Reverse Write-Off page
+opt No associated Imposition
+revWO -> getImp ++: Call API with Defendant Account ID (JSON)
+getImp --> db ++ : Select Defendant Account Impositions by ID (JPA)
+getImp <-- db --: Defendant Account Impositions list
+revWO <-- getImp -- : Defendant Account Impositions list (JSON)
+revWO -> revWO : Populate table with \nDefendant Account Impositions list
+user -> revWO : User selects an Imposition
+end
+user -> revWO --: Click 'Reverse Write-Off' button
+revWO --> upImp ++: Call API with Defendant Account ID \n& Imposition ID (JSON)
+upImp --> sp ++ : Call Reverse Write-Off Stored Procedure
+sp --> upImp --: Reverse Write-Off Result
+upImp --> revWO --: Reverse Write-Off Result (JSON)
+revWO -> revWO : Display success or error message
+@enduml
