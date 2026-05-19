@@ -3,7 +3,7 @@ actor "User" as user
 participant "View Account \n(Impositions tab)" as viewpage <<UI Page>> #lightskyblue
 participant "Select Write-Off" as selectWO <<UI Page>> #lightskyblue
 participant "Get Defendant Account Transactions" as getWO <<Fines API>> #lightgreen
-database "Defendant Transactions \n& \nImpositions" as db <<Fines DB>>  #lightgreen
+database "Defendant Transactions \n& \nImpositions" as db <<Fines DB>>  #yellow
 user ++
 user -> viewpage --++: Select 'Reverse write-off' button
 viewpage -> selectWO --++: Navigate to

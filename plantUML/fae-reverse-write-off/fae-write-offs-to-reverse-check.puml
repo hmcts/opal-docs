@@ -1,0 +1,13 @@
+@startuml
+actor "User" as user
+participant "View Account \n(Impositions tab)" as viewpage <<UI Page>> #lightskyblue
+participant "Get Defendant Account Transactions" as getWO <<Fines API>> #lightgreen
+database "Defendant Transactions \n& \nImpositions" as db <<Fines DB>>  #yellow
+user ++
+user -> viewpage --++: Navigates to
+viewpage --> getWO ++: Call API with Defendant Account ID \n transaction_type = 'WRTOFF' \n& status != 'R' & limit=1 (JSON)
+getWO --> db ++ : Select top Defendant Transaction by ID \nwhere type = 'WRTOFF' & status != 'R' (JPA)
+getWO <-- db --: Defendant Account Transaction
+viewpage <-- getWO -- : Defendant Account Transaction (JSON)
+viewpage -> viewpage : Show 'Reverse write-off' button if Defendant Account Transaction exists
+@enduml
