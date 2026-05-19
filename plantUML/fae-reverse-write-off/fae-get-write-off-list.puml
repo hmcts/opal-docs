@@ -2,12 +2,12 @@
 actor "User" as user
 participant "View Account \n(Impositions tab)" as viewpage <<UI Page>> #lightskyblue
 participant "Select Write-Off" as selectWO <<UI Page>> #lightskyblue
-participant "Get Defendant Account Transactions Write-Offs" as getWO <<Fines API>> #lightgreen
+participant "Get Defendant Account Transactions" as getWO <<Fines API>> #lightgreen
 database "Defendant Transactions \n& \nImpositions" as db <<Fines DB>>  #lightgreen
 user ++
 user -> viewpage --++: Select 'Reverse write-off' button
 viewpage -> selectWO --++: Navigate to
-selectWO --> getWO ++: Call API with Defendant Account ID \n& Status != 'R' (JSON)
+selectWO --> getWO ++: Call API with Defendant Account ID \n transaction_type = 'WRTOFF' \n& status != 'R' (JSON)
 getWO --> db ++ : Select Defendant Transactions by ID \nwhere type = 'WRTOFF' & status != 'R' (JPA)
 getWO <-- db --: Defendant Account Transactions list
 selectWO <-- getWO -- : Defendant Account Transactions list (JSON)
