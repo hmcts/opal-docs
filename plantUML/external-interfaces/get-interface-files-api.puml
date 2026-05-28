@@ -6,13 +6,7 @@ database "Opal File Handling Database" as fileHandlingDb #LightGreen
 
 anyOpalService -> fileHandlingService ++ : Request to get interface files
 fileHandlingService -> fileHandlingService : Checks if feature flag for this API is enabled
-alt Feature flag disabled
-   fileHandlingService -> anyOpalService : Return error response indicating API is unavailable
-else Feature flag enabled
-    fileHandlingService -> fileHandlingDb ++ : Query database for file metadata using provided search criteria
-    fileHandlingDb --> fileHandlingService -- : Return all file metadata matching search criteria or empty result if no matches found
-    fileHandlingService -> anyOpalService : Return list of file metadata to requester
-end
-
-
+fileHandlingService -> fileHandlingDb ++ : Query database for file metadata using provided search criteria
+fileHandlingDb --> fileHandlingService -- : Return all file metadata matching search criteria or empty result if no matches found
+fileHandlingService -> anyOpalService : Return list of file metadata to requester
 @enduml

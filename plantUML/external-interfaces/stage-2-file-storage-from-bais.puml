@@ -8,29 +8,21 @@ database "BAIS SFTP Server" as baisSftpServer <<External System>> #LightCoral
 
 cronjob -[#red]> fileHandlingService ++ : Trigger file storage process
 fileHandlingService -[#red]> fileHandlingService : Checks if feature flag for this Job is enabled
-alt Feature flag disabled
-    fileHandlingService -[#red]> fileHandlingService : Log that the job is skipped and exit process
-else Feature flag enabled
-    fileHandlingService -[#red]> baisSftpServer ++ : Connect to SFTP server and retrieve files
-    baisSftpServer --[#red]> fileHandlingService -- : Return files
-    fileHandlingService --[#red]> fileHandlingDb ++ : Check for existing file metadata to prevent duplicates (Must have status of successful to be a duplicate) (JPA)
-    fileHandlingDb --[#red]> fileHandlingService -- : Return existing metadata if found or confirmation of no duplicates
-
-    alt No duplicates found
-        fileHandlingService -[#red]> fileHandlingService : Start transaction
-        fileHandlingService -[#red]> fileHandlingBlobStorage ++ : Store files in blob storage
-        fileHandlingBlobStorage --[#red]> fileHandlingService -- : Confirmation of storage
-        fileHandlingService -[#red]> fileHandlingDb ++ : Add row to database with file metadata (JPA) with a success status
-        fileHandlingDb --[#red]> fileHandlingService -- : Confirmation of update
-        fileHandlingService -> fileHandlingService: Process BAIS file if applicable
-        fileHandlingService -[#red]> fileHandlingService : Commit transaction
-        fileHandlingService -[#red]> baisSftpServer ++ : Delete BAIS files we have successfully stored in opal and have metadata updated in database
-        baisSftpServer --[#red]> fileHandlingService -- : Confirmation of deletion
-    else Duplicates found
-        fileHandlingService -[#red]> fileHandlingService : Log error that duplicates were found
-        fileHandlingService -[#red]> fileHandlingDb ++ : Add row to database with file metadata (JPA) with a failed status and error indicating duplicates found
-        fileHandlingDb --[#red]> fileHandlingService -- : Confirmation of update
-    end
+fileHandlingService -[#red]> baisSftpServer ++ : Connect to SFTP server and retrieve files
+baisSftpServer -[#red]-> fileHandlingService -- : Return files
+fileHandlingService -[#red]-> fileHandlingDb ++ : Check for existing file metadata to prevent duplicates (Must have status of successful to be a duplicate) (JPA)
+fileHandlingDb -[#red]-> fileHandlingService -- : Return existing metadata if found or confirmation of no duplicates
+alt Duplicates found
+    fileHandlingService -[#red]> fileHandlingService : Log error that duplicates were found
 end
-fileHandlingService -[#red]> cronjob -- : Exit process
+fileHandlingService -[#red]> fileHandlingService : Start transaction
+fileHandlingService -[#red]> fileHandlingBlobStorage ++ : Store files in blob storage
+fileHandlingBlobStorage -[#red]-> fileHandlingService -- : Confirmation of storage
+fileHandlingService -[#red]> fileHandlingDb ++ : Add row to database with file metadata (JPA) with a success status (or duplicate status if duplicate found)
+fileHandlingDb -[#red]-> fileHandlingService -- : Confirmation of update
+fileHandlingService -> fileHandlingService: Process BAIS file if applicable (Out of scope for this TDIA)
+fileHandlingService -[#red]> fileHandlingService : Commit transaction
+fileHandlingService -[#red]> baisSftpServer ++ : Delete BAIS files we have successfully stored in opal and have metadata updated in database
+baisSftpServer -[#red]-> fileHandlingService -- : Confirmation of deletion
+fileHandlingService -> cronjob -- : Exit process
 @enduml

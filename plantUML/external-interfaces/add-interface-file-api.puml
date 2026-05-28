@@ -6,29 +6,20 @@ participant "Opal File Handling Service" as fileHandlingService <<File Handling 
 database "Opal File Handling Database" as fileHandlingDb #LightGreen
 database "Opal File Handling Blob Storage" as fileHandlingBlobStorage #LightGreen
 
-anyOpalService -> fileHandlingService ++ : Request to get content of interface file
+anyOpalService -> fileHandlingService ++ : Request to add  interface file
 fileHandlingService -> fileHandlingService : Checks if feature flag for this API is enabled
-alt Feature flag disabled
-       fileHandlingService -> anyOpalService : Return error response indicating API is unavailable
-else Feature flag enabled
-    fileHandlingService -> fileHandlingDb ++ : check for existing file metadata to prevent duplicates (Must have status of successful to be a duplicate) (JPA)
-    fileHandlingDb --> fileHandlingService -- : Return existing metadata if found or confirmation of no duplicates
-    alt Duplicates found
-                 fileHandlingService -> fileHandlingService : Log error that duplicates were found
-                 fileHandlingService -> fileHandlingDb ++ : Add row to database with file metadata (JPA) with a failed status and error indicating duplicates found
-                 fileHandlingDb --> fileHandlingService -- : Confirmation of update
-                 fileHandlingService -> anyOpalService : Return error response indicating duplicates found
-    else No duplicates found
-                 fileHandlingService -> fileHandlingService : Start transaction
-                    fileHandlingService -> fileHandlingBlobStorage ++ : Store file in blob storage
-                    fileHandlingBlobStorage --> fileHandlingService -- : Confirmation of storage
-                    fileHandlingService -> fileHandlingDb ++ : Add row to database with file metadata (JPA) with a success status
-                    fileHandlingDb --> fileHandlingService -- : Confirmation of update
-                    fileHandlingService -> fileHandlingService : Commit transaction
-                    fileHandlingService -> anyOpalService : Return success response with file identifier
-    end
+fileHandlingService -> fileHandlingDb ++ : check for existing file metadata to prevent duplicates (Must have status of successful to be a duplicate) (JPA)
+fileHandlingDb --> fileHandlingService -- : Return existing metadata if found or confirmation of no duplicates
+alt Duplicates found
+             fileHandlingService -> fileHandlingService : Log error that duplicates were found
+             fileHandlingService -> anyOpalService : Return error response indicating duplicates found
+else No duplicates found
+             fileHandlingService -> fileHandlingService : Start transaction
+                fileHandlingService -> fileHandlingBlobStorage ++ : Store file in blob storage
+                fileHandlingBlobStorage --> fileHandlingService -- : Confirmation of storage
+                fileHandlingService -> fileHandlingDb ++ : Add row to database with file metadata (JPA) with a success status
+                fileHandlingDb --> fileHandlingService -- : Confirmation of update
+                fileHandlingService -> fileHandlingService : Commit transaction
+                fileHandlingService -> anyOpalService : Return success response with file identifier
 end
-
-
-
 @enduml
