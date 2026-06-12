@@ -1,0 +1,19 @@
+@startuml
+actor "User" as user
+
+
+
+participant "Review Selected Accounts" as review <<UI Page>> #lightskyblue
+
+participant "Defendant Accounts Consolidate" as consolidateAPI <<Fines API>> #lightgreen
+database "Stored Procedure" as db <<Fines DB>>#lightgreen
+
+user ++
+user -> review ++: Click "Consolidate" button
+review --> consolidateAPI ++: Call API with Selected Defendant Account IDs (JSON)
+consolidateAPI --> db ++: Call Stored Procedure with Defendant Account IDs
+db --> consolidateAPI --: Consolidation Result
+consolidateAPI --> review --: Consolidation Result (JSON)
+review -> review : Display success or error message
+user --
+@enduml
