@@ -12,15 +12,17 @@ fileHandlingService -> baisSftpServer ++ : Connect to SFTP server and retrieve f
 baisSftpServer --> fileHandlingService -- : Return files
 fileHandlingService --> fileHandlingDb ++ : Check for existing file metadata to prevent duplicates (Must have status of successful to be a duplicate) (JPA)
 fileHandlingDb --> fileHandlingService -- : Return existing metadata if found or confirmation of no duplicates
-alt Duplicates found
-    fileHandlingService -> fileHandlingService : Log error that duplicates were found
-end
+
 fileHandlingService -> fileHandlingService : Start transaction
 fileHandlingService -> fileHandlingBlobStorage ++ : Store files in blob storage
 fileHandlingBlobStorage --> fileHandlingService -- : Confirmation of storage
 fileHandlingService -> fileHandlingDb ++ : Add row to database with file metadata (JPA) with a success status (or duplicate status if duplicate found)
 fileHandlingDb --> fileHandlingService -- : Confirmation of update
-fileHandlingService -[#red]> fileHandlingService: Process BAIS file if applicable (Out of scope for this TDIA)
+alt Duplicates found
+    fileHandlingService -> fileHandlingService : Log error that duplicates were found
+else
+    fileHandlingService -[#red]> fileHandlingService: Process BAIS file if applicable (Out of scope for this TDIA)
+end
 fileHandlingService -> fileHandlingService : Commit transaction
 fileHandlingService -> baisSftpServer ++ : Delete BAIS files we have successfully stored in opal and have metadata updated in database
 baisSftpServer --> fileHandlingService -- : Confirmation of deletion

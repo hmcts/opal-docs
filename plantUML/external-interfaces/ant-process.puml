@@ -3,7 +3,7 @@ title Account reference number transformation
 start
 repeat:For each transaction in a Banking Interface file;
 if (Payment Type is Cash (Transaction code = 11)) then (yes)
-    if (Transaction Code = 00,15,93 or 99?) then (yes)
+    if (Transaction Code = 00,15, 68, 93 or 99?) then (yes)
         if (Transaction code = 15 or 93?) then (yes)
             :Set Transaction Code = 99;
         else (no)
