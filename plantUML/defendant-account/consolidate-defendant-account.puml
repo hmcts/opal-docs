@@ -5,7 +5,7 @@ actor "User" as user
 
 participant "Review Selected Accounts" as review <<UI Page>> #lightskyblue
 
-participant "Defendant Accounts Consolidate" as consolidateAPI <<Fines API>> #lightgreen
+participant "Add Defendant Account Consolidated Accounts" as consolidateAPI <<Fines API>> #lightgreen
 database "Stored Procedure" as db <<Fines DB>>#lightgreen
 
 user ++
