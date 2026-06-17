@@ -1,0 +1,78 @@
+@startuml
+title User Service JPA Entities Overview
+
+hide empty members
+skinparam linetype ortho
+skinparam shadowing false
+
+top to bottom direction
+scale 800 width
+
+skinparam class {
+  BorderThickness<<EntityView>> 3
+  BorderColor<<EntityView>> #1F618D
+  RoundCorner<<EntityView>> 15
+}
+
+' ===== ACCESS CONTROL =====
+package "Access Control Domain" {
+  class DomainEntity <<Entity>>
+  class BusinessUnitEntity <<Entity>>
+  class UserEntity <<Entity>>
+  class BusinessUnitUserEntity <<Entity>>
+  class BusinessUnitUserRoleEntity <<Entity>>
+  class RoleEntity <<EntityView>>
+}
+
+' ===== AUDIT =====
+package "Audit and Event Logging" {
+  class BusinessEventEntity <<Entity>>
+  class LogActionEntity <<Entity>>
+  class LogAuditDetailEntity <<Entity>>
+}
+
+' =====================================================
+
+DomainEntity -[hidden]down-> BusinessUnitEntity
+BusinessUnitEntity -[hidden]down-> BusinessUnitUserEntity
+BusinessUnitUserEntity -[hidden]down-> BusinessUnitUserRoleEntity
+UserEntity -[hidden]right-> BusinessUnitUserEntity
+RoleEntity -[hidden]right-> BusinessUnitUserRoleEntity
+BusinessEventEntity -[hidden]down-> LogAuditDetailEntity
+
+' =====================================================
+
+DomainEntity ||--o{ BusinessUnitEntity
+DomainEntity ||--o{ RoleEntity
+
+BusinessUnitEntity }o--o| BusinessUnitEntity
+BusinessUnitEntity ||--o{ BusinessUnitUserEntity
+UserEntity ||--o{ BusinessUnitUserEntity
+
+BusinessUnitUserEntity ||--o{ BusinessUnitUserRoleEntity
+RoleEntity ||--o{ BusinessUnitUserRoleEntity
+
+UserEntity ||--o{ BusinessEventEntity
+UserEntity ||--o{ BusinessEventEntity
+
+LogActionEntity ||--o{ LogAuditDetailEntity
+BusinessUnitEntity ||--o{ LogAuditDetailEntity
+UserEntity ..> LogAuditDetailEntity
+
+note bottom of RoleEntity
+Maps to the v_current_roles database view,
+not directly to the base roles table.
+end note
+
+note bottom of BusinessEventEntity
+The schema has foreign keys from subject_user_id
+and initiator_user_id to users.user_id.
+The entity currently stores those as scalar IDs.
+end note
+
+note bottom of LogAuditDetailEntity
+Only logAction and businessUnit are mapped as JPA associations.
+userId is stored as a scalar field in the entity.
+end note
+
+@enduml

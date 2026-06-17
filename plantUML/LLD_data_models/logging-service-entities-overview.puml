@@ -1,0 +1,55 @@
+@startuml
+title Logging Service JPA Entities Overview
+
+hide empty members
+skinparam linetype ortho
+skinparam shadowing false
+
+top to bottom direction
+scale 800 width
+
+package "Reference Data" {
+  class PdpoIdentifierEntity <<Entity>>
+}
+
+package "PDPO Logging Domain" {
+  class PdpoLogEntity <<Entity>>
+  class PdpoLogIndividualEntity <<Entity>>
+  enum PdpoCategory <<Enum>>
+}
+
+PdpoIdentifierEntity -[hidden]down-> PdpoLogEntity
+PdpoLogEntity -[hidden]down-> PdpoLogIndividualEntity
+
+PdpoIdentifierEntity ||--o{ PdpoLogEntity
+PdpoLogEntity ||--o{ PdpoLogIndividualEntity
+PdpoCategory <.. PdpoLogEntity
+
+note bottom of PdpoIdentifierEntity
+Stores the business identifier
+used to group related PDPO logs.
+end note
+
+note left of PdpoLogEntity
+Central audit record for a PDPO event.
+
+Optional recipient fields are only
+populated for DISCLOSURE events.
+end note
+
+note right of PdpoLogIndividualEntity
+One log entry can reference
+multiple impacted individuals.
+end note
+
+note bottom of PdpoCategory
+Values:
+- COLLECTION
+- ALTERATION
+- CONSULTATION
+- DISCLOSURE
+- COMBINATION
+- ERASURE
+end note
+
+@enduml

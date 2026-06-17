@@ -1,0 +1,185 @@
+@startuml
+title Fines Service JPA Entities Overview
+
+hide empty members
+skinparam linetype ortho
+skinparam shadowing false
+
+top to bottom direction
+scale 800 width
+
+skinparam class {
+  BorderThickness<<BU>> 3
+  BorderColor<<BU>> #1F618D
+  RoundCorner<<BU>> 15
+}
+
+' ===== ADDRESS =====
+package "Address" {
+  abstract class AddressEntity <<MappedSuperclass>>
+  abstract class AddressCyEntity <<MappedSuperclass>>
+}
+
+' ===== BUSINESS UNIT =====
+package "Business Unit" {
+  class BusinessUnitEntity <<Entity>>
+  class ConfigurationItemEntity <<Entity, BU>>
+}
+
+' ===== CORE =====
+class LocalJusticeAreaEntity <<Entity>>
+class CourtEntity <<Entity>>
+class EnforcerEntity <<Entity>>
+class PrisonEntity <<Entity>>
+class ResultEntity <<Entity>>
+
+' ===== CREDITOR =====
+package "Creditor Account Domain" {
+  class MajorCreditorEntity <<Entity>>
+  class CreditorAccountEntity <<Entity, BU>>
+}
+
+' ===== DEFENDANT =====
+package "Defendant Account Domain" {
+  class DefendantAccountEntity <<Entity, BU>>
+  class DefendantAccountPartiesEntity <<Entity>>
+  class PaymentTermsEntity <<Entity>>
+  class ImpositionEntity <<Entity>>
+  class EnforcementEntity <<Entity>>
+  class AllocationEntity <<Entity>>
+  class DefendantTransactionEntity <<Entity>>
+  class AccountTransferEntity <<Entity, BU>>
+  class CommittalWarrantProgressEntity <<Entity>>
+}
+
+package "Party and Alias" {
+  class PartyEntity <<Entity>>
+  class AliasEntity <<Entity>>
+}
+
+' ===== STANDALONE (TOP) =====
+package "Standalone Domain Entities" {
+  class CreditorTransactionEntity <<Entity>>
+  class DebtorDetailEntity <<Entity>>
+  class EnforcementOverrideResultEntity <<Entity>>
+  class FixedPenaltyOffenceEntity <<Entity>>
+  class NoteEntity <<Entity>>
+  class PaymentCardRequestEntity <<Entity>>
+  class ProsecutorEntity <<Entity>>
+  class AmendmentEntity <<Entity>>
+  class ReportEntity <<Entity>>
+  class ReportInstanceEntity <<Entity>>
+  class ResultDocumentEntity <<Entity>>
+
+  package "View and Search Entities" {
+    class DefendantAccountHeaderViewEntity <<EntityView>>
+    class DefendantAccountSummaryViewEntity <<EntityView>>
+    class MajorCreditorAccountHeaderEntity <<EntityView>>
+    class MinorCreditorEntity <<EntityView>>
+    class MinorCreditorAccountHeaderEntity <<EntityView>>
+    class MinorCreditorAccountAtAGlanceEntity <<EntityView>>
+    class SearchConsolidatedEntity <<EntityView>>
+  }
+}
+
+' ===== BU RELATED (BOTTOM) =====
+package "Entities related to Business Unit" {
+  class OffenceEntity <<Entity, BU>>
+  class CourtFeeEntity <<Entity, BU>>
+  class HmrcRequestEntity <<Entity, BU>>
+  class ControlTotalEntity <<Entity, BU>>
+  class BacsPaymentEntity <<Entity, BU>>
+  class ChequeEntity <<Entity, BU>>
+  class StandardLetterEntity <<Entity, BU>>
+  class WarrantRegisterEntity <<Entity, BU>>
+  class ReportEntryEntity <<Entity, BU>>
+  class MisDebtorEntity <<Entity, BU>>
+  class DraftAccountEntity <<Entity, BU>>
+  class SuspenseAccountEntity <<Entity, BU>>
+  class SuspenseItemEntity <<Entity>>
+  class TillEntity <<Entity, BU>>
+  class PaymentInEntity <<Entity>>
+  class DocumentInstanceEntity <<Entity, BU>>
+  class LogAuditDetailEntity <<Entity, BU>>
+  class MiscellaneousAccountEntity <<Entity, BU>>
+  class DocumentEntity <<Entity>>
+  class LogActionEntity <<Entity>>
+}
+
+' =====================================================
+
+SearchConsolidatedEntity -[hidden]down-> CourtEntity
+
+CourtEntity -[hidden]down-> BusinessUnitEntity
+ConfigurationItemEntity -[hidden]down-> BusinessUnitEntity
+BusinessUnitEntity -[hidden]down-> DefendantAccountEntity
+DefendantAccountEntity -[hidden]down-> EnforcementEntity
+EnforcementEntity -[hidden]down-> OffenceEntity
+OffenceEntity -[hidden]down-> DraftAccountEntity
+DraftAccountEntity -[hidden]down-> ControlTotalEntity
+ResultEntity -[hidden]down-> DefendantAccountEntity
+
+' =====================================================
+
+ControlTotalEntity -[hidden]right-> PartyEntity
+PartyEntity -[hidden]right-> MiscellaneousAccountEntity
+SearchConsolidatedEntity -[hidden]right-> AmendmentEntity
+StandardLetterEntity -[hidden]right-> OffenceEntity
+BusinessUnitEntity -[hidden]left-> CreditorAccountEntity
+BusinessUnitEntity -[hidden]right-> DefendantAccountEntity
+PrisonEntity -[hidden]right-> EnforcerEntity
+CourtEntity -[hidden]right-> ResultEntity
+
+' =====================================================
+
+AddressEntity <|-- AddressCyEntity
+AddressEntity <|-- LocalJusticeAreaEntity
+AddressEntity <|-- MajorCreditorEntity
+AddressEntity <|-- PrisonEntity
+AddressCyEntity <|-- CourtEntity
+AddressCyEntity <|-- EnforcerEntity
+
+BusinessUnitEntity }o--o| BusinessUnitEntity
+BusinessUnitEntity }o--|| CourtEntity
+BusinessUnitEntity }o--|| PrisonEntity
+BusinessUnitEntity }o--|| EnforcerEntity
+
+LocalJusticeAreaEntity }o--o| CourtEntity
+CourtEntity }o--o| CourtEntity
+
+PartyEntity }o--|| AliasEntity
+
+MajorCreditorEntity |o--o| CreditorAccountEntity
+
+CourtEntity }o--o| DefendantAccountEntity
+DefendantAccountEntity }o--|| DefendantAccountPartiesEntity
+PartyEntity }o--|| DefendantAccountPartiesEntity
+
+DefendantAccountEntity }o--|| PaymentTermsEntity
+DefendantAccountEntity }o--|| ImpositionEntity
+CourtEntity }o--o| ImpositionEntity
+CreditorAccountEntity }o--o| ImpositionEntity
+
+ImpositionEntity }o--|| AllocationEntity
+AllocationEntity |o--o{ DefendantTransactionEntity
+
+DefendantAccountEntity }o--|| AccountTransferEntity
+
+ResultEntity }o--|| EnforcementEntity
+EnforcementEntity ||--o{ DefendantAccountEntity
+EnforcerEntity }o--o| EnforcementEntity
+CourtEntity }o--|| EnforcementEntity
+EnforcementEntity }o--|| CommittalWarrantProgressEntity
+PrisonEntity }o--o| CommittalWarrantProgressEntity
+
+SuspenseAccountEntity }o--|| SuspenseItemEntity
+TillEntity }o--|| PaymentInEntity
+DocumentEntity }o--|| DocumentInstanceEntity
+LogActionEntity }o--|| LogAuditDetailEntity
+PartyEntity }o--|| MiscellaneousAccountEntity
+
+note bottom of "Standalone Domain Entities"
+Standalone or loosely related entities
+end note
+
+@enduml
