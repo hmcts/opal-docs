@@ -1,0 +1,60 @@
+@startuml
+title Payout Creditors - Dequeue Runs
+
+queue Queue as "Runs Queue" #Orange
+participant Consumer as "Runs Queue Consumer" #LightGreen
+database DB as "Fines DB" #Yellow
+participant Report as "Reporting Service" #LightGreen
+
+activate Queue
+activate Consumer
+
+Consumer --> Queue : Poll for messages (Peek-lock)
+Queue -> Consumer : Lock message, pass run_id \nand run_type to consumer
+
+Consumer -->o Consumer : Route by run_type = PAYOUT
+Consumer -->o Consumer : Begin tx
+Consumer -> DB ++: Call p_process_creditor_payout(run_id)
+
+alt SP succeeds - HMCTS/Other
+    DB --> Consumer --: Return OK \nRUNS updated by SP
+    Consumer -> Report ++: Initiate HMCTS/Other payout report
+    Report --> Consumer --: Return status
+
+    alt Report initiation successful
+        Consumer -->o Consumer : Commit tx
+        Consumer --> Queue : Complete message (remove from queue)
+    else Transient report error
+        Consumer -->o Consumer : Rollback tx
+        Consumer --> Queue : Abandon message (release lock)
+    else Non-transient report error
+        Consumer -->o Consumer : Rollback tx
+        Consumer -->o Consumer : Begin failure tx
+        Consumer -> DB ++: Update RUNS status to FAILED
+        DB --> Consumer --: Return OK
+        Consumer -->o Consumer : Commit failure tx
+        Consumer --> Queue : Complete message (remove from queue)
+    end
+
+else SP succeeds - Minor or Major
+    DB --> Consumer --: Return OK \nRUNS updated by SP
+    Consumer -->o Consumer : Commit tx
+    Consumer --> Queue : Complete message (remove from queue)
+
+else SP returns failure
+    DB --> Consumer --: Return failure
+    Consumer -->o Consumer : Rollback tx
+    Consumer -->o Consumer : Begin failure tx
+    Consumer -> DB ++: Update RUNS status to FAILED
+    DB --> Consumer --: Return OK
+    Consumer -->o Consumer : Commit failure tx
+    Consumer --> Queue : Complete message (remove from queue)
+
+else Transient non-report DB / infrastructure error
+    DB --> Consumer --: Return transient error
+    Consumer -->o Consumer : Rollback tx
+    Consumer --> Queue : Abandon message (release lock)
+end
+
+deactivate Consumer
+@enduml

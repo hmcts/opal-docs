@@ -1,0 +1,19 @@
+@startuml
+title Payout Creditors - Get Report Instance Content
+
+actor "User" as user
+participant "HMCTS/Other Reports" as reportsTab <<UI Page>> #lightskyblue
+participant "Get Report Instance Content" as getReportContent <<Fines API>> #lightgreen
+participant "Report Azure Blob Store" as blobStore <<Azure Blob Store>> #lightgreen
+database "Fines DB" as db #Yellow
+
+user -> reportsTab ++ : Click Download CSV on a report instance
+reportsTab -> getReportContent ++ : GET /report-instances/{id}/content \n(CSV)
+getReportContent -> db ++ : Retrieve report instance details
+db --> getReportContent -- : Report instance details
+getReportContent -> blobStore ++ : Fetch stored report content
+blobStore --> getReportContent -- : Report content (BLOB)
+getReportContent --> reportsTab -- : Report download (CSV)
+user <-- reportsTab : Download report CSV
+
+@enduml

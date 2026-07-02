@@ -1,0 +1,16 @@
+@startuml
+title Payout Creditors - Search Minor Creditor Demand
+
+actor "User" as user
+participant "Minor Creditor Demand \nPayout" as demandPayout <<UI Page>> #lightskyblue
+participant "Search Minor Creditor \nAccounts" as searchMinorCreditor <<Fines API>> #lightgreen
+database "Fines DB" as db #Yellow
+
+user -> demandPayout ++: Enter creditor account number \nand click Search
+demandPayout -> searchMinorCreditor ++: POST /minor-creditor-accounts/search \n(business_unit_ids, account_number)
+searchMinorCreditor -> db ++: Search Minor Creditor accounts \nfor selected business unit and account number
+db --> searchMinorCreditor --: Matching Minor Creditor account
+searchMinorCreditor --> demandPayout --: Search result (JSON)
+demandPayout -> demandPayout : Display Minor Creditor details
+
+@enduml

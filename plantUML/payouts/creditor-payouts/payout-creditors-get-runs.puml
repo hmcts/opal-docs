@@ -1,0 +1,17 @@
+@startuml
+title Payout Creditors - Get Runs
+
+actor "User" as user
+participant "Payout Screen \n<i><UI></i>" as payoutPage <<UI Page>> #lightskyblue
+participant "Get Runs" as getRuns <<Fines API>> #lightgreen
+database "Fines DB" as db <<RUNS table>> #Yellow
+
+user -> payoutPage ++: Open / refresh payout table
+payoutPage -> getRuns ++: GET /runs \n(runType, runDate,\n businessUnitId?, creditorType?)
+getRuns -> db ++: Read FINES.RUNS \nfor supplied filters
+db --> getRuns --: Return matching RUNS rows
+
+getRuns -->o getRuns : Map run metadata plus \nrun_parameters JSON and \nrun_output JSON where present
+
+getRuns --> payoutPage --: 200 OK \n(list of runs)
+@enduml

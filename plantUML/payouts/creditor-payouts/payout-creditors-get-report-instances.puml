@@ -1,0 +1,16 @@
+@startuml
+title Payout Creditors - Get Report Instances
+
+actor "User" as user
+participant "HMCTS/Other Reports" as reportsTab <<UI Page>> #lightskyblue
+participant "Get Report Instances" as getReportInstances <<Fines API>> #lightgreen
+database "Fines DB" as db #Yellow
+
+user -> reportsTab ++ : Open / refresh HMCTS/Other Reports tab
+reportsTab -> getReportInstances ++ : GET /report-instances \n(report_id, business_units, date)
+getReportInstances -> db ++ : Retrieve matching report instances
+db --> getReportInstances -- : Report instance records
+getReportInstances --> reportsTab -- : Report instance list (JSON)
+user <-- reportsTab : View report instances
+
+@enduml

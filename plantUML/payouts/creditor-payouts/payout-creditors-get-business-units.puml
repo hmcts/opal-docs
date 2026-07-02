@@ -1,0 +1,16 @@
+@startuml
+title Payout Creditors - Get Business Units
+
+actor "User" as user
+participant "Select Business Unit \nPayout" as selectBusinessUnit <<UI Page>> #lightskyblue
+participant "Get Business Units" as getBusinessUnits <<Fines API>> #lightgreen
+database "Fines DB" as db #Yellow
+
+user -> selectBusinessUnit ++: Open payout start page
+selectBusinessUnit -> getBusinessUnits ++: Get Business Units \nwhere user has `Action Payouts`
+getBusinessUnits -> db ++: Retrieve Business Units
+db --> getBusinessUnits --: Business Units
+getBusinessUnits --> selectBusinessUnit --: Business Units (JSON)
+user -> selectBusinessUnit : Select Business Unit \nand click Continue
+
+@enduml

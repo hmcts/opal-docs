@@ -1,0 +1,24 @@
+@startuml
+title Payout Creditors - Enqueue Runs
+
+actor "User" as user
+participant "Payout Submit Screen \n<i><UI></i>" as payoutPage <<UI Page>> #lightskyblue
+participant "Add Runs \nPOST /runs" as submitPayout <<Fines API>> #lightgreen
+database "Fines DB" as db <<RUNS table>> #Yellow
+queue Queue as "Runs Queue" #Orange
+
+user -> payoutPage ++: Click "Payout"
+payoutPage -> submitPayout ++: Submit run request \n(request payload)
+submitPayout -->o submitPayout : Begin tx
+submitPayout -> db ++: Insert RUNS row \n(run_parameters = request payload,\n run_status = CREATED,\n run_type = PAYOUT)
+db --> submitPayout --: Return run_id
+submitPayout -> Queue ++: Enqueue run message \n(run_id, run_type)
+
+alt RUNS insert and enqueue successful
+    submitPayout -->o submitPayout : Commit tx
+    submitPayout --> payoutPage --: 201 Created
+else RUNS insert or enqueue fails
+    submitPayout -->o submitPayout : Rollback tx
+    submitPayout --> payoutPage --: Error response
+end
+@enduml
