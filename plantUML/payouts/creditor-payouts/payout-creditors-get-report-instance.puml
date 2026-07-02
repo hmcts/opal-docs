@@ -1,0 +1,16 @@
+@startuml
+title Payout Creditors - Get Report Instance
+
+actor "User" as user
+participant "HMCTS/Other Report \nOverview" as reportOverview <<UI Page>> #lightskyblue
+participant "Get Report Instance" as getReportInstance <<Fines API>> #lightgreen
+database "Fines DB" as db #Yellow
+
+user -> reportOverview ++ : Open report overview
+reportOverview -> getReportInstance ++ : GET /report-instances/{id}
+getReportInstance -> db ++ : Retrieve report instance details
+db --> getReportInstance -- : Report instance details
+getReportInstance --> reportOverview -- : Report instance summary (JSON)
+user <-- reportOverview : View report instance overview
+
+@enduml
