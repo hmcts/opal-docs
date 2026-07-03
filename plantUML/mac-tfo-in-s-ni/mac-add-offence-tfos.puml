@@ -1,0 +1,17 @@
+@startuml
+actor "Inputter" as user
+participant "Account Details" as account <<UI Page>> #lightskyblue
+participant "Add Offence" as addoff <<UI Page>> #lightskyblue
+participant "Get Results" as results <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+user -> account ++ : Click <b>Offence Details</b> link
+account -> addoff ++ : Navigate to 
+deactivate account
+addoff --> results ++ : ""FINE, FCST, FCMP" Result Code filter parameter
+results -> db ++ : Retrieve Results records (JPA)
+results <-- db -- : Results records
+addoff <-- results -- : Results (JSON)
+addoff -> addoff : Populate Results auto-complete
+
+@enduml
