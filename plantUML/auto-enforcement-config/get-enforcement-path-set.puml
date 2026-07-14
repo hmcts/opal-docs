@@ -1,0 +1,16 @@
+@startuml
+Title: Auto Enforcement Configuration - Get Enforcement Path Set
+actor User
+participant "Auto Enforcement Configuration\n(Enforcement paths tab)" as autoEnforcementConfigurationUI <<UI Page>> #lightskyblue
+participant "Enforcement Path Set" as enforcementPathSetUI <<UI Page>> #lightskyblue
+participant "Get Enforcement Path Set" as getEnforcementPathSetService <<Fines Service>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+User -> autoEnforcementConfigurationUI ++ : Select enforcement path set
+autoEnforcementConfigurationUI -> getEnforcementPathSetService ++: Get enforcement path set
+getEnforcementPathSetService -> db ++ : Select data (JPA)
+db --> getEnforcementPathSetService -- : Return data
+getEnforcementPathSetService --> autoEnforcementConfigurationUI -- : Return data
+autoEnforcementConfigurationUI --> User -- : Display enforcement path set details
+
+@enduml

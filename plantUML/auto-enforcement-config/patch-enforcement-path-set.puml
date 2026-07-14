@@ -1,0 +1,26 @@
+@startuml
+Title: Auto Enforcement Configuration - Update Enforcement Path Set
+actor User
+participant "Enforcement Path Set" as enforcementPathSetUI <<UI Page>> #lightskyblue
+participant "Update Enforcement Path Set" as updateEnforcementPathSetService <<Fines Service>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+User -> enforcementPathSetUI ++ : Save enforcement path set changes
+note right of enforcementPathSetUI
+Only supplied request sections are updated.
+businessUnits is a full replacement.
+end note
+enforcementPathSetUI -> updateEnforcementPathSetService ++: Update enforcement path set
+alt businessUnits supplied
+updateEnforcementPathSetService -> db ++ : Replace assigned business units (JPA)
+db --> updateEnforcementPathSetService -- : Acknowledgement
+else paths supplied
+updateEnforcementPathSetService -> db ++ : Upsert enforcement paths (JPA)
+db --> updateEnforcementPathSetService -- : Acknowledgement
+end
+updateEnforcementPathSetService -> db ++ : Select updated enforcement path set (JPA)
+db --> updateEnforcementPathSetService -- : Return updated enforcement path set data
+updateEnforcementPathSetService --> enforcementPathSetUI -- : Return full enforcement path set
+enforcementPathSetUI --> User -- : Display updated enforcement path set
+
+@enduml
