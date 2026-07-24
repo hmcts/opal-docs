@@ -1,0 +1,25 @@
+@startuml
+actor "Inputter" as user
+participant "Check Case Details\n<i>UI</i>" as review <<UI Page>> #lightskyblue
+participant "Create Draft Casefile\nPOST /draft-casefiles" as create <<RM API>> #lightgreen
+database "RM Database" as db <<DRAFT_CASEFILES>> #Yellow
+
+user -> review : Select <b>Submit for Review</b>
+review -> create ++ : JSON including business_unit_id,\ncasefile and casefile_type
+create -> create : Check Create and Manage Draft Casefiles\npermission for requested Business Unit
+
+alt User has permission for the requested Business Unit
+  create -> create : Validate request and reference values
+  create -> create : Set lifecycle status SUBMITTED and timestamps\nGenerate Casefile Snapshot\nGenerate initial Timeline Data with status Submitted
+  create -> db ++ : Begin transaction\nInsert DRAFT_CASEFILES (JPA)
+  db --> create -- : Draft Casefile
+  create --> review -- : Draft Casefile created
+  review --> user : Show confirmation
+else User lacks permission for the requested Business Unit
+  create --> review -- : Authorisation Problem Detail
+  review --> user : Show access denied
+else Validation or reference check fails
+  create --> review -- : Validation Problem Detail with correlation identifier
+  review --> user : Show validation error
+end
+@enduml

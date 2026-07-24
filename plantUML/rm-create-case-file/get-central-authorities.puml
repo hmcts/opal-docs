@@ -1,0 +1,13 @@
+@startuml
+actor "Inputter" as user
+participant "Central Authority Details\n<i>UI</i>" as page <<UI Page>> #lightskyblue
+participant "Get Major Creditors\nGET /major-creditors" as api <<RM API>> #lightgreen
+database "RM Database" as db <<MAJOR_CREDITORS>> #Yellow
+
+user -> page : Open Central Authority Details
+page -> api ++ : central_authority=true
+api -> db ++ : Retrieve active Central Authorities (JPA)
+db --> api -- : Major Creditor records
+api --> page -- : JSON including identifier, code, name,\naddress, Country, contact details\nand central_authority
+page --> user : Display Central Authority selector
+@enduml

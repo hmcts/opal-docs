@@ -1,0 +1,14 @@
+@startuml
+actor "Inputter" as user
+participant "Order Terms Input\n<i>UI</i>" as page <<UI Page>> #lightskyblue
+participant "Get Result\nGET /results/{result_id}" as api <<RM API>> #lightgreen
+database "RM Database" as db <<RESULTS>> #Yellow
+
+user -> page : Select a Result code
+page -> api ++ : Path parameter result_id
+api -> db ++ : Retrieve full Result (JPA)
+db --> api -- : Result including result_parameters
+api --> page -- : JSON including the complete Result inventory\nand result_parameters
+page -> page : Map Result Parameters to dynamic fields
+page --> user : Display dynamic Order Term form
+@enduml
