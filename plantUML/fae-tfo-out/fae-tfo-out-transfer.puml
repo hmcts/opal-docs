@@ -1,0 +1,12 @@
+@startuml
+actor "Inputter" as user
+participant "Transfer Details" as td <<UI Page>> #lightskyblue
+participant "Add Defendant Account Transfer" as adat <<Fines API>> #lightgreen
+database "Fines SP" as db <<Process Transfer Out>> #lightgreen
+
+user -> td ++ : Clicks 'Transfer' button
+td --> adat ++ : Account Transfer details (JSON)
+adat -> db ++ : Process Transfer Out (SP)
+adat <-- db -- : Transfer Out Result
+td <-- adat -- : Transfer Out Result (JSON)
+@enduml

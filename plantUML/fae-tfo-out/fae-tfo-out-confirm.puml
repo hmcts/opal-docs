@@ -1,0 +1,24 @@
+@startuml
+actor "Inputter" as user
+participant "Account Details" as ad <<UI Page>> #lightskyblue
+participant "Confirm Transfer Accepted" as cta <<UI Page>> #lightskyblue
+participant "Get Latest \nDefendant Account Transfer" as gldat <<Fines API>> #lightgreen
+participant "Add Defendant Account \nTransfer Defendant Transactions" as adatdt <<Fines API>> #lightgreen
+database "Fines DB" as db <<Account Transfers>> #lightgreen
+database "Fines SP" as sp <<Confirm Transfer Out>> #lightgreen
+
+user -> ad ++ : Clicks 'More actions' dropdown
+user -> ad : Chooses 'Confirm transfer \nout accepted' option
+ad -> cta --++ : Navigate to
+cta --> gldat ++ : Defendant Account details (JSON)
+gldat -> db ++ : Get Latest Defendant Account Transfer (SP)
+gldat <-- db -- : Get Latest Defendant Account Transfer Result
+cta <-- gldat -- : Get Latest Defendant Account Transfer Result (JSON)
+user -> cta : Clicks 'Yes - Transfer accepted' button
+cta --> adatdt ++ : Defendant Account details (JSON)
+adatdt -> sp ++ : Confirm Transfer Out (SP)
+adatdt <-- sp -- : Confirm Transfer Out Result
+cta <-- adatdt -- : Confirm Transfer Out Result (JSON)
+
+
+@enduml

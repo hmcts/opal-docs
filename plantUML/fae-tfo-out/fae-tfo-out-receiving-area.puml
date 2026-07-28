@@ -1,0 +1,19 @@
+@startuml
+actor "Inputter" as user
+participant "Transfer Details" as td <<UI Page>> #lightskyblue
+participant "Get Local Justice Areas" as ljas <<Fines API>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+user -> td ++ : Navigate to
+alt England/Wales
+td --> ljas ++ : LJA Types = LJA, CRWCRT
+else Northern Ireland
+td --> ljas  : LJA Types = NICRT
+else Scotland
+td --> ljas  : LJA Types = SCSCRT, SJCRT
+end
+ljas -> db ++ : Retrieve Local Justice Areas records (JPA)
+ljas <-- db -- : Local Justice Areas records
+td <-- ljas -- : Local Justice Areas (JSON)
+td -> td : Populate Local Justice Areas auto-complete
+@enduml

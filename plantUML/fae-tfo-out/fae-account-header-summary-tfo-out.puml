@@ -1,0 +1,24 @@
+@startuml
+actor "User" as user
+participant "View account" as viewAccount <<UI Page>> #lightskyblue
+participant "Get Defendant Account \nHeader Summary" as getHeaderApi <<Fines API>> #lightgreen
+database "Fines DB" as db #lightgreen
+
+user ->  viewAccount ++ :Navigates to
+viewAccount --> getHeaderApi ++: Get header data
+getHeaderApi --> db ++ : Get header data (JPA)
+db --> getHeaderApi -- : Return header data [including account status]
+getHeaderApi --> viewAccount --: Return header data (JSON)
+alt Account status = "Transfer Out Pending"
+viewAccount -> viewAccount : Display "Transfer Out to England or Wales pending" message
+else Account status = "Transfer Out Acknowledged"
+viewAccount -> viewAccount : Display "Transferred Out to England or Wales" message
+else Account status = "Transfer Out to NI/Scotland"
+viewAccount -> viewAccount : Display "Transferred Out to Scotland or Northern Ireland" message
+
+end
+deactivate getHeaderApi
+
+
+
+@enduml
