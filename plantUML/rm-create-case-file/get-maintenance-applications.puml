@@ -5,7 +5,7 @@ participant "Get Maintenance Applications\nGET /maintenance-applications" as api
 database "RM Database" as db <<MAINTENANCE_APPLICATIONS>> #Yellow
 
 user -> page : Open Order Details
-page -> api ++ : application_group=Create Casefile
+page -> api ++ : application_group=Create Casefile,\nactive=true
 api -> db ++ : Retrieve matching active applications (JPA)
 db --> api -- : Application records
 api --> page -- : JSON including application_id,\napplication_code, application_title\nand application_group

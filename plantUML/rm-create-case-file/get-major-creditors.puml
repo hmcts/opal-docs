@@ -4,10 +4,10 @@ participant "Creditor \n<i>UI</i>" as page <<UI Page>> #lightskyblue
 participant "Get Major Creditors\nGET /major-creditors" as api <<RM API>> #lightgreen
 database "RM Database" as db <<MAJOR_CREDITORS>> #Yellow
 
-user -> page : Navigated to Creditor
-page -> api ++ : active=true
+user -> page : Choose Major Creditor
+page -> api ++ : active=true,\ncentral_authority=false
 api -> db ++ : Retrieve active Major Creditors (JPA)
 db --> api -- : Major Creditor records
 api --> page -- : JSON including identifier, code, name,\naddress, Country, contact details\nand central_authority
-page --> user : Populate and display \nMajor Creditor dropdown
+page --> user : Display Major Creditor dropdown list
 @enduml

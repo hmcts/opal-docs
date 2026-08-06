@@ -5,9 +5,9 @@ participant "Get Results\nGET /results" as api <<RM API>> #lightgreen
 database "RM Database" as db <<RESULTS>> #Yellow
 
 user -> page : Open Order Terms Selection
-page -> api ++ : result_type=<selected type>
-api -> db ++ : Retrieve matching active Results (JPA)
+page -> api ++ : order_term=true,\nactive=true
+api -> db ++ : Retrieve active Results\nwhere order_term=true (JPA)
 db --> api -- : Result records
-api --> page -- : JSON including result_id, result_title,\nresult_type and case_result_type
-page --> user : Display Result selector
+api --> page -- : JSON including result_id\nand result_title
+page --> user : Display Order Term selector
 @enduml

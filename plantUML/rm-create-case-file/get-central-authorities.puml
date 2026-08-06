@@ -5,7 +5,7 @@ participant "Get Major Creditors\nGET /major-creditors" as api <<RM API>> #light
 database "RM Database" as db <<MAJOR_CREDITORS>> #Yellow
 
 user -> page : Open Central Authority Details
-page -> api ++ : central_authority=true
+page -> api ++ : active=true,\ncentral_authority=true
 api -> db ++ : Retrieve active Central Authorities (JPA)
 db --> api -- : Major Creditor records
 api --> page -- : JSON including identifier, code, name,\naddress, Country, contact details\nand central_authority
