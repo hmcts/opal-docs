@@ -1,0 +1,13 @@
+@startuml
+actor "Inputter" as user
+participant "Order Terms Selection\n<i>UI</i>" as page <<UI Page>> #lightskyblue
+participant "Get Results\nGET /results" as api <<RM API>> #lightgreen
+database "RM Database" as db <<RESULTS>> #Yellow
+
+user -> page : Open Order Terms Selection
+page -> api ++ : order_term=true,\nactive=true
+api -> db ++ : Retrieve active Results\nwhere order_term=true (JPA)
+db --> api -- : Result records
+api --> page -- : JSON including result_id\nand result_title
+page --> user : Display Order Term selector
+@enduml

@@ -1,0 +1,13 @@
+@startuml
+actor "Inputter" as user
+participant "Address Details\n<i>UI</i>" as page <<UI Page>> #lightskyblue
+participant "Get Countries\nGET /countries" as api <<RM API>> #lightgreen
+database "RM Database" as db <<COUNTRIES>> #Yellow
+
+user -> page : Open an address form
+page -> api ++ : Request Countries
+api -> db ++ : Retrieve active Countries
+db --> api -- : Country records
+api --> page -- : JSON including identifier, codes,\nname, demonym and effective dates
+page --> user : Display Country selector\nwith United Kingdom first
+@enduml
