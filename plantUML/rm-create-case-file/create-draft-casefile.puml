@@ -1,7 +1,7 @@
 @startuml
 actor "Inputter" as user
 participant "Check Case Details\n<i>UI</i>" as review <<UI Page>> #lightskyblue
-participant "Create Draft Casefile\nPOST /draft-casefiles" as create <<RM API>> #lightgreen
+participant "Add Draft Casefile\nPOST /draft-casefiles" as create <<RM API>> #lightgreen
 database "RM Database" as db <<DRAFT_CASEFILES>> #Yellow
 
 user -> review : Select <b>Submit for Review</b>

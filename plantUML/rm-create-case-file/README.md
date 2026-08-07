@@ -26,6 +26,6 @@ The following UML sequence diagrams illustrate the main backend interactions in 
 
 **Called by the Order Terms Input page:** After the inputter selects an Order Term, the page requests its Result metadata and uses `result_parameters` to build the form.
 
-## Create Draft Casefile
+## Add Draft Casefile
 
 **Called by the Check Case Details page:** When the inputter selects **Submit for Review**, the page sends the Business Unit, Casefile and Casefile Type to RM.
