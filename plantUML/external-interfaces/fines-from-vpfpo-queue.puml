@@ -1,0 +1,13 @@
+@startuml
+title Fines Service Subscribing to Azure Service Bus Draft Account Queue
+database "Draft Account Queue" as draftAccountQueue <<External System>> #LightCoral
+participant "Opal Fines Service" as finesService <<Fines Service>> #LightSkyBlue
+database "Opal Fines Database" as finesDb #LightGreen
+
+draftAccountQueue -> finesService ++ : Item placed on queue triggers subscriber
+finesService -> finesService : Start transaction
+finesService -> finesDb : Populate Draft Account table with record from queue (mapping PSA code to BU)
+finesDb --> finesService -- : Confirmation of storage
+finesService -> finesService : Commit transaction
+finesService --> draftAccountQueue -- : Exit process
+@enduml
