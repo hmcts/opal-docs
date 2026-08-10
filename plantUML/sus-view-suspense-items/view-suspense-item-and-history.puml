@@ -1,0 +1,21 @@
+@startuml
+actor "User" as user
+participant "Search for Suspense Item" as search <<UI Page>> #lightskyblue
+participant "Suspense Item results" as results <<UI Page>> #lightskyblue
+participant "Get Suspense \nItem Summary" as getSIApi <<Fines API>> #lightgreen
+participant "Get Suspense \nItem History" as getSHApi <<Fines API>> #lightgreen
+database "Summary View" as dbview <<Fines>>#lightgreen
+database "Opal DB" as db <<Fines>>#lightgreen
+
+user ->  search ++ :Navigates to
+search --> getSIApi ++: Get Suspense Item Summary
+getSIApi --> dbview ++ : Get Suspense Item Summary (JPA)
+dbview --> getSIApi -- : Return Suspense Item Summary
+getSIApi --> search --: Return Suspense Item Summary (JSON)
+search --> getSHApi ++: Get Suspense Item History
+getSHApi --> db ++ : Get Suspense Item History (JPA)
+db --> getSHApi -- : Return Suspense Item History
+getSHApi --> search --: Return Suspense Item History (JSON)
+search ->  results ++ : Navigates to and displays Suspense Item \nSummary & History
+
+@enduml
