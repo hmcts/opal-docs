@@ -1,0 +1,18 @@
+@startuml
+queue "Reference Data Topic" as refDataTopic <<Topic>> #lightgreen
+participant "Opal Service" as refDataService <<Service>> #lightskyblue
+database "Service Database" as db #lightgreen
+
+refDataTopic -> refDataService ++ : New reference data message
+
+refDataService -> db ++ : Retrieve entity by business code
+db --> refDataService --
+
+refDataService -> refDataService : Update entity from message
+
+refDataService -> db ++ : Persist entity
+db --> refDataService --
+
+refDataService --> refDataTopic -- : Acknowledge message processed
+
+@enduml
