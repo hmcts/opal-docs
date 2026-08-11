@@ -21,13 +21,15 @@ fileHandlingDb --> fileHandlingService -- : Confirmation of update
 alt Duplicates found
     fileHandlingService -> fileHandlingService : Log error that duplicates were found
 else
+    group Process & Push to queue
     fileHandlingService -[#red]> fileHandlingService: Process VPFPO file if applicable
+    fileHandlingService -> draftAccountQueue ++ : Push draft account JSON payloads to Draft Account Queue
+    draftAccountQueue --> fileHandlingService -- : Confirmation of pushing
+    end
 end
 
 fileHandlingService -> fileHandlingService : Commit transaction
-fileHandlingService -> draftAccountQueue ++ : Push draft account JSON payloads to Draft Account Queue
-draftAccountQueue --> fileHandlingService -- : Confirmation of pushing
 fileHandlingService -> vpfpoBlobStore ++ : Delete VPFPO files we have successfully stored in opal and have metadata updated in database
 vpfpoBlobStore --> fileHandlingService -- : Confirmation of deletion
 fileHandlingService -> cronjob -- : Exit process
-@enduml+
+@enduml
