@@ -5,7 +5,6 @@ participant "Opal File Handling Service" as fileHandlingService <<File Handling 
 database "Opal File Handling Database" as fileHandlingDb #LightGreen
 database "Opal File Handling Blob Storage" as fileHandlingBlobStorage #LightGreen
 database "VPFPO Blob Store" as vpfpoBlobStore <<External System>> #LightCoral
-database "Draft Account Queue" as draftAccountQueue <<External System>> #LightCoral
 
 cronjob -> fileHandlingService ++ : Trigger VPFPO retrieval
 fileHandlingService -> fileHandlingService : Checks if feature flag for this Job is enabled
@@ -21,11 +20,7 @@ fileHandlingDb --> fileHandlingService -- : Confirmation of update
 alt Duplicates found
     fileHandlingService -> fileHandlingService : Log error that duplicates were found
 else
-    group Process & Push to queue
     fileHandlingService -[#red]> fileHandlingService: Process VPFPO file if applicable
-    fileHandlingService -> draftAccountQueue ++ : Push draft account JSON payloads to Draft Account Queue
-    draftAccountQueue --> fileHandlingService -- : Confirmation of pushing
-    end
 end
 
 fileHandlingService -> fileHandlingService : Commit transaction
