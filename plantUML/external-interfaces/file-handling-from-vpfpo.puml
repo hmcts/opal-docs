@@ -20,7 +20,7 @@ fileHandlingDb --> fileHandlingService -- : Confirmation of update
 alt Duplicates found
     fileHandlingService -> fileHandlingService : Log error that duplicates were found
 else
-    fileHandlingService -[#red]> fileHandlingService: Process VPFPO file if applicable
+    fileHandlingService -[#red]> fileHandlingService: Process VPFPO file if applicable (details in subsection below)
 end
 
 fileHandlingService -> fileHandlingService : Commit transaction
