@@ -6,18 +6,35 @@ database "Opal File Handling Blob Storage" as fileHandlingBlobStorage #LightGree
 database "Opal File Handling Database" as fileHandlingDb #LightGreen
 queue "Fines Draft Account queue" as finesDraftAccountQueue <<Queue>> #lightgreen
 
+alt Processing File
+    fileHandlingService -> fileHandlingService ++ : Read source file to extract key data to populate the source JSON file
+else
+    fileHandlingService[#red]->fileHandlingService : Mark source JSON as FAILED status in interfaceFiles table
+end
+fileHandlingService -> fileHandlingDb ++ : Store all Registrations with PENDING status
+fileHandlingDb --> fileHandlingService : Confirmation of storage
 
-fileHandlingService -> fileHandlingService ++: Read source file to extract key data to populate the source JSON file
-fileHandlingService -> fileHandlingDb ++ : Using the extract data from the source file locate the relevant reference data (BU / Area (incl. PSA-BU Mapping), opal processing domain, etc)
-fileHandlingDb --> fileHandlingService -- : Return data
-fileHandlingService -> fileHandlingService : Create the source JSON file using the extract data from the source file and reference data from the database
-fileHandlingService -> fileHandlingBlobStorage ++ : Store source JSON in blob storage
-fileHandlingBlobStorage --> fileHandlingService -- : Confirmation of storage with location metadata
+alt For each Registration above
+    fileHandlingService -> fileHandlingDb : Using the extract data from the source file locate the relevant reference data (BU / Area (incl. PSA-BU Mapping), opal processing domain, etc)
+    fileHandlingDb --> fileHandlingService -- : Return data
+else Draft Account JSON error
+    fileHandlingService[#red]-> fileHandlingService : Mark file in interfaceFile table as failed. This should auto-retry next time due to EI2 mechanism.
+end
+
+alt Creating Source JSON
+    fileHandlingService -> fileHandlingService : Create the source JSON file using the extract data from the source file and reference data from the database
+    fileHandlingService -> fileHandlingBlobStorage ++ : Store source JSON in blob storage
+    fileHandlingBlobStorage --> fileHandlingService -- : Confirmation of storage with location metadata
+else Source JSON Failure
+    fileHandlingService[#red]-> fileHandlingService : Discard?
+end
+
 fileHandlingService -> fileHandlingDb ++ : Store file metadata in database (JPA) with a success status
 fileHandlingDb --> fileHandlingService -- : Confirmation of update
 
-fileHandlingService -> finesDraftAccountQueue ++ : Send JSON Draft Account payload to queue
+fileHandlingService -> finesDraftAccountQueue ++ : Send JSON Draft Account payload to queue (will be duplicate check in subscriber)
 finesDraftAccountQueue --> fileHandlingService -- : Confirmation of message sent
+
 fileHandlingService -> fileHandlingDb ++ : Mark status as successfully processed in database (JPA) or if error occurs mark as failed with error message in database (JPA)
 fileHandlingDb --> fileHandlingService -- : Confirmation of update
 
