@@ -9,16 +9,18 @@ queue "Fines Draft Account queue" as finesDraftAccountQueue <<Queue>> #lightgree
 alt Processing File
     fileHandlingService -> fileHandlingService ++ : Read source file to extract key data to populate the source JSON file
 else
-    fileHandlingService[#red]->fileHandlingService : Mark source JSON as FAILED status in interfaceFiles table
+    fileHandlingService -> fileHandlingService : Mark source JSON as FAILED status in interfaceFiles table
 end
 fileHandlingService -> fileHandlingDb ++ : Store all Registrations with PENDING status
 fileHandlingDb --> fileHandlingService : Confirmation of storage
+fileHandlingService -> fileHandlingDb : Retrieve all Registrations with PENDING status (including above, this handles errors from previous times)
+fileHandlingDb --> fileHandlingService : All registrations to be processed returned
 
 alt For each Registration above
     fileHandlingService -> fileHandlingDb : Using the extract data from the source file locate the relevant reference data (BU / Area (incl. PSA-BU Mapping), opal processing domain, etc)
     fileHandlingDb --> fileHandlingService -- : Return data
 else Draft Account JSON error
-    fileHandlingService[#red]-> fileHandlingService : Mark file in interfaceFile table as failed. This should auto-retry next time due to EI2 mechanism.
+    fileHandlingService -> fileHandlingService : Mark file in interfaceFile table as failed. This should auto-retry next time due to EI2 mechanism.
 end
 
 alt Creating Source JSON
@@ -26,7 +28,7 @@ alt Creating Source JSON
     fileHandlingService -> fileHandlingBlobStorage ++ : Store source JSON in blob storage
     fileHandlingBlobStorage --> fileHandlingService -- : Confirmation of storage with location metadata
 else Source JSON Failure
-    fileHandlingService[#red]-> fileHandlingService : Discard?
+    fileHandlingService[#red]-> fileHandlingService : Handled in EI2
 end
 
 fileHandlingService -> fileHandlingDb ++ : Store file metadata in database (JPA) with a success status
