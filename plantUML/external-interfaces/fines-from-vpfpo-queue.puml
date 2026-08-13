@@ -1,17 +1,17 @@
 @startuml
 title Fines Service Subscribing to Azure Service Bus Draft Account Queue
-database "Draft Account Queue" as draftAccountQueue <<External System>> #LightCoral
+queue "Fines Draft Account queue" as finesDraftAccountQueue <<Queue>> #lightgreen
 participant "Opal Fines Service" as finesService <<Fines Service>> #LightSkyBlue
 database "Opal Fines Database" as finesDb #LightGreen
 
-draftAccountQueue -> finesService ++ : Item placed on queue triggers subscriber
+finesDraftAccountQueue -> finesService ++ : Item placed on queue triggers subscriber
 finesService -> finesService : Start transaction
 alt Duplicate Check
     finesService -> finesDb : Populate Draft Account table with record from queue (mapping PSA code to BU, using existing Draft Account service (with minor modifications)))
     finesDb --> finesService -- : Confirmation of storage
     finesService -> finesService : Commit transaction
 else Duplicate found
-    finesService[#red]-> finesService : Do not process
+    finesService -> finesService : Do not process
 end
-finesService --> draftAccountQueue -- : Exit process
+finesService --> finesDraftAccountQueue -- : Exit process
 @enduml
