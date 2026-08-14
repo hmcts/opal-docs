@@ -1,0 +1,20 @@
+@startuml
+actor "User" as user
+participant "Suspense Item Add Note" as notes <<UI Page>> #lightskyblue
+participant "Add Suspense Item Transactions" as addsustx <<Fines API>> #lightgreen
+database "Fines DB" as db <<Transfer SP>> #lightgreen
+database "Fines DB" as db1 <<Notes>> #lightgreen
+
+
+user ->  notes ++: Inputs data
+user ->  notes : Clicks 'Confirm and transfer' button
+notes -> addsustx ++: ID, Version, \nTransaction Type (XP) & Note Text  (JSON)
+addsustx -> addsustx : Start TX
+addsustx -> db ++: Create Transaction (SP)
+db --> addsustx --: Return Version
+addsustx -> db1 ++: Create Note (JPA)
+db1 --> addsustx --: Return Note ID
+addsustx -> addsustx : Commit TX
+addsustx --> notes --: Return created data (JSON)
+
+@enduml

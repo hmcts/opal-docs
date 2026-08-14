@@ -1,0 +1,16 @@
+@startuml
+actor "User" as user
+participant "Suspense Item Add Note" as notes <<UI Page>> #lightskyblue
+participant "Add Note" as postNote <<Fines API>> #lightgreen
+database "Fines DB" as db #lightgreen
+
+
+user ->  notes ++: Inputs data
+user ->  notes : Clicks 'Save Note' button
+notes --> postNote ++: Create note
+postNote --> db ++: Create note (JPA)
+db --> postNote --: Return created data
+
+postNote --> notes --: Return created data (JSON)
+
+@enduml
