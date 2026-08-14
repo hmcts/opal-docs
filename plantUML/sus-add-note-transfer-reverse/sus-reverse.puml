@@ -7,7 +7,7 @@ database "Fines DB" as db1 <<Notes>> #lightgreen
 
 
 user ->  notes ++: Inputs data
-user ->  notes : Clicks 'Confirm and transfer' button
+user ->  notes : Clicks 'Confirm and reverse' button
 notes -> addsustx ++: ID, Version, \nTransaction Type (RV or DQ) & Note Text  (JSON)
 addsustx -> addsustx : Start TX
 addsustx -> db ++: Create Transaction (SP)
