@@ -17,7 +17,7 @@ fileHandlingDb --> fileHandlingService -- : Return existing metadata if found or
 fileHandlingService -> fileHandlingService : Start transaction
 fileHandlingService -> fileHandlingBlobStorage ++ : Store files in Opal blob storage
 fileHandlingBlobStorage --> fileHandlingService -- : Confirmation of storage
-fileHandlingService -> fileHandlingDb  : Add row to database with file metadata (JPA) with a success status (or duplicate status if duplicate found)
+fileHandlingService -> fileHandlingDb ++ : Add row to database with file metadata (JPA) with a success status (or duplicate status if duplicate found)
 fileHandlingDb --> fileHandlingService -- : Confirmation of update
 alt Duplicates found
     fileHandlingService -> fileHandlingService : Log error that duplicates were found
