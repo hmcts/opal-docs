@@ -9,11 +9,11 @@ database "VPFPO Blob Store" as vpfpoBlobStore <<External System>> #LightCoral
 cronjob -> fileHandlingService ++ : Trigger VPFPO retrieval
 fileHandlingService -> fileHandlingService : Checks if feature flag for this Job is enabled
 fileHandlingService -> fileHandlingDb ++ : Retrieve all Registrations with PENDING / FAILED status (this handles errors from previous times)
-fileHandlingDb --> fileHandlingService : All previously PENDING / FAILED registrations to be processed returned
+fileHandlingDb --> fileHandlingService -- : All previously PENDING / FAILED registrations to be processed returned
 fileHandlingService -> vpfpoBlobStore ++ : Connect to VPFPO Blob Store and retrieve files
-vpfpoBlobStore --> fileHandlingService : Return files
-fileHandlingService --> fileHandlingDb : Check for existing file metadata to prevent duplicates (Must have status of successful to be a duplicate) (JPA)
-fileHandlingDb --> fileHandlingService : Return existing metadata if found or confirmation of no duplicates
+vpfpoBlobStore --> fileHandlingService -- : Return files
+fileHandlingService --> fileHandlingDb ++ : Check for existing file metadata to prevent duplicates (Must have status of successful to be a duplicate) (JPA)
+fileHandlingDb --> fileHandlingService -- : Return existing metadata if found or confirmation of no duplicates
 fileHandlingService -> fileHandlingService : Start transaction
 fileHandlingService -> fileHandlingBlobStorage ++ : Store files in Opal blob storage
 fileHandlingBlobStorage --> fileHandlingService -- : Confirmation of storage
@@ -26,7 +26,7 @@ else
 end
 
 fileHandlingService -> fileHandlingService : Commit transaction
-fileHandlingService -> vpfpoBlobStore : Delete VPFPO files we have successfully stored in opal and have metadata updated in database
+fileHandlingService -> vpfpoBlobStore ++ : Delete VPFPO files we have successfully stored in opal and have metadata updated in database
 vpfpoBlobStore --> fileHandlingService -- : Confirmation of deletion
 fileHandlingService -> cronjob -- : Exit process
 @enduml

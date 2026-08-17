@@ -13,11 +13,11 @@ else Processing Error
     fileHandlingService -> fileHandlingService : Exit Process
 end
 fileHandlingService -> fileHandlingDb ++ : Store all Registrations with PENDING status
-fileHandlingDb --> fileHandlingService : Confirmation of storage
+fileHandlingDb --> fileHandlingService -- : Confirmation of storage
 
 alt For each Registration above
-    fileHandlingService -> fileHandlingDb : Using the extract data from the source file locate the relevant reference data (opal processing domain, etc)
-    fileHandlingDb --> fileHandlingService : Return data
+    fileHandlingService -> fileHandlingDb ++ : Using the extract data from the source file locate the relevant reference data (opal processing domain, etc)
+    fileHandlingDb --> fileHandlingService -- : Return data
 else Draft Account JSON error
     fileHandlingService -> fileHandlingService : Mark file in interfaceFile table as failed. This should auto-retry next time due to EI2 mechanism.
     fileHandlingService -> fileHandlingService : Exit Process
@@ -32,13 +32,13 @@ else Source JSON Failure
     fileHandlingService -> fileHandlingService : Exit Process
 end
 
-fileHandlingService -> fileHandlingDb : Store file metadata in database (JPA) with a success status
-fileHandlingDb --> fileHandlingService : Confirmation of update
+fileHandlingService -> fileHandlingDb ++ : Store file metadata in database (JPA) with a success status
+fileHandlingDb --> fileHandlingService -- : Confirmation of update
 
 fileHandlingService -> finesDraftAccountQueue ++ : Send JSON Draft Account payload to queue (will be duplicate check in subscriber)
 finesDraftAccountQueue --> fileHandlingService -- : Confirmation of message sent
 
-fileHandlingService -> fileHandlingDb : Mark status as successfully processed in database (JPA) or if error occurs mark as failed with error message in database (JPA)
+fileHandlingService -> fileHandlingDb ++ : Mark status as successfully processed in database (JPA) or if error occurs mark as failed with error message in database (JPA)
 fileHandlingDb --> fileHandlingService -- : Confirmation of update
 
 @enduml
