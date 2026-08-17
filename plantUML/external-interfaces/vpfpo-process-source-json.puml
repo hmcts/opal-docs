@@ -6,10 +6,12 @@ database "Opal File Handling Blob Storage" as fileHandlingBlobStorage #LightGree
 database "Opal File Handling Database" as fileHandlingDb #LightGreen
 queue "Fines Draft Account queue" as finesDraftAccountQueue <<Queue>> #lightgreen
 
-alt Processing File
-    fileHandlingService -> fileHandlingService ++ : Read source file to extract key data to populate the source JSON file
-else Processing Error
-    fileHandlingService -> fileHandlingService : Mark source JSON as FAILED status in interfaceFiles table
+alt Creating Source JSON
+    fileHandlingService -> fileHandlingService : Create the source JSON file using the extract data from the source file and reference data from the database
+    fileHandlingService -> fileHandlingBlobStorage ++ : Store source JSON in blob storage
+    fileHandlingBlobStorage --> fileHandlingService -- : Confirmation of storage with location metadata
+else Source JSON Failure
+    fileHandlingService[#red]-> fileHandlingService : Handled in EI2
     fileHandlingService -> fileHandlingService : Exit Process
 end
 fileHandlingService -> fileHandlingDb ++ : Store all Registrations with PENDING status
@@ -20,15 +22,6 @@ alt For each Registration above
     fileHandlingDb --> fileHandlingService -- : Return data
 else Draft Account JSON error
     fileHandlingService -> fileHandlingService : Mark file in interfaceFile table as failed. This should auto-retry next time due to EI2 mechanism.
-    fileHandlingService -> fileHandlingService : Exit Process
-end
-
-alt Creating Source JSON
-    fileHandlingService -> fileHandlingService : Create the source JSON file using the extract data from the source file and reference data from the database
-    fileHandlingService -> fileHandlingBlobStorage ++ : Store source JSON in blob storage
-    fileHandlingBlobStorage --> fileHandlingService -- : Confirmation of storage with location metadata
-else Source JSON Failure
-    fileHandlingService[#red]-> fileHandlingService : Handled in EI2
     fileHandlingService -> fileHandlingService : Exit Process
 end
 
