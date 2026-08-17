@@ -7,7 +7,7 @@ database "Opal Fines Database" as finesDb #LightGreen
 finesDraftAccountQueue -> finesService ++ : Item placed on queue triggers subscriber
 finesService -> finesService : Start transaction
 alt Duplicate Check
-    finesService -> finesDb ++ : Populate Draft Account table with record from queue (mapping PSA code to BU, using existing Draft Account service (with minor modifications))
+    finesService -> finesDb ++ : Populate Draft Account table with record from queue (preprocess file, using existing Draft Account service (with minor modifications))
     finesDb --> finesService -- : Confirmation of storage
     finesService -> finesService : Commit transaction
 else Duplicate found
