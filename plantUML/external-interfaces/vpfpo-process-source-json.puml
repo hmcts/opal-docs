@@ -22,6 +22,8 @@ alt For each Registration above
     fileHandlingDb --> fileHandlingService -- : Return data
 else Draft Account JSON error
     fileHandlingService -> fileHandlingService : Mark file in interfaceFile table as failed. This should auto-retry next time due to EI2 mechanism.
+    fileHandlingService -> fileHandlingDb ++ : Mark all registrations for that SOURCE_JSON as EXTRACTION_FAILED
+    fileHandlingDb --> fileHandlingService -- : Confirmation of update
     fileHandlingService -> fileHandlingService : Exit Process
 end
 
