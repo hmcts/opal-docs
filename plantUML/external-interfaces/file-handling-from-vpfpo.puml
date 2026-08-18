@@ -8,16 +8,7 @@ database "VPFPO Blob Store" as vpfpoBlobStore <<External System>> #LightCoral
 
 cronjob -> fileHandlingService ++ : Trigger VPFPO retrieval
 fileHandlingService -> fileHandlingService : Checks if feature flag for this Job is enabled
-group Retry previously unsuccessful registrations
-    note over fileHandlingService, fileHandlingDb
-      Retrieves registrations left in PENDING / FAILED from earlier runs
-    end note
-
-    fileHandlingService -> fileHandlingDb ++ : Retrieve all Registrations with PENDING / FAILED status
-    fileHandlingDb --> fileHandlingService -- : All previously PENDING / FAILED registrations to be processed returned
-    fileHandlingService -> fileHandlingBlobStorage ++ : Retrieve SOURCE_JSONs for the reprocessed registrations to construct Draft Account JSON Payloads
-    fileHandlingBlobStorage --> fileHandlingService -- : SOURCE_JSONs returned
-end
+fileHandlingService -> fileHandlingService : Process previously unsuccessful registrations (see below)
 fileHandlingService -> vpfpoBlobStore ++ : Connect to VPFPO Blob Store and retrieve files
 vpfpoBlobStore --> fileHandlingService -- : Return files
 fileHandlingService --> fileHandlingDb ++ : Check for existing file metadata to prevent duplicates (Must have status of successful to be a duplicate) (JPA)
