@@ -14,7 +14,7 @@ else Source JSON Failure
     fileHandlingService[#red]-> fileHandlingService : Handled in EI2
     fileHandlingService -> fileHandlingService : Exit Process
 end
-fileHandlingService -> fileHandlingDb ++ : Store all Registrations with PENDING status
+fileHandlingService -> fileHandlingDb ++ : Store all Registrations with CREATED status
 fileHandlingDb --> fileHandlingService -- : Confirmation of storage
 
 alt For each Registration above
@@ -30,6 +30,9 @@ fileHandlingDb --> fileHandlingService -- : Confirmation of update
 
 fileHandlingService -> finesDraftAccountQueue ++ : Send JSON Draft Account payload to queue (will be duplicate check in subscriber)
 finesDraftAccountQueue --> fileHandlingService -- : Confirmation of message sent
+
+fileHandlingService -> fileHandlingDb ++ : Update Registrations to be SUBMITTED
+fileHandlingDb --> fileHandlingService -- : Confirmation of update
 
 fileHandlingService -> fileHandlingDb ++ : Mark status as successfully processed in database (JPA) or if error occurs mark as failed with error message in database (JPA)
 fileHandlingDb --> fileHandlingService -- : Confirmation of update
