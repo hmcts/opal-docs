@@ -1,0 +1,31 @@
+@startuml
+title Read file from VPFPO Blob Store for Draft Account Publishing
+participant "Kubernetes CronJob" as cronjob <<External System>> #LightCoral
+participant "Opal File Handling Service" as fileHandlingService <<File Handling Service>> #LightSkyBlue
+database "Opal File Handling Database" as fileHandlingDb #LightGreen
+database "Opal File Handling Blob Storage" as fileHandlingBlobStorage #LightGreen
+database "VPFPO Blob Store" as vpfpoBlobStore <<External System>> #LightCoral
+
+cronjob -> fileHandlingService ++ : Trigger VPFPO retrieval
+fileHandlingService -> fileHandlingService : Checks if feature flag for this Job is enabled
+fileHandlingService -> fileHandlingService : Process previously unsuccessful registrations (see below)
+fileHandlingService -> vpfpoBlobStore ++ : Connect to VPFPO Blob Store and retrieve files
+vpfpoBlobStore --> fileHandlingService -- : Return files
+fileHandlingService --> fileHandlingDb ++ : Check for existing file metadata to prevent duplicates (Must have status of successful to be a duplicate) (JPA)
+fileHandlingDb --> fileHandlingService -- : Return existing metadata if found or confirmation of no duplicates
+fileHandlingService -> fileHandlingService : Start transaction
+fileHandlingService -> fileHandlingBlobStorage ++ : Store files in Opal blob storage
+fileHandlingBlobStorage --> fileHandlingService -- : Confirmation of storage
+fileHandlingService -> fileHandlingDb ++ : Add row to database with file metadata (JPA) with a success status (or duplicate status if duplicate found)
+fileHandlingDb --> fileHandlingService -- : Confirmation of update
+alt Duplicates found
+    fileHandlingService -> fileHandlingService : Log error that duplicates were found
+else
+    fileHandlingService -> fileHandlingService: Process VPFPO file if applicable (details in subsection below)
+end
+
+fileHandlingService -> fileHandlingService : Commit transaction
+fileHandlingService -> vpfpoBlobStore ++ : Delete VPFPO files we have successfully stored in opal and have metadata updated in database
+vpfpoBlobStore --> fileHandlingService -- : Confirmation of deletion
+fileHandlingService -> cronjob -- : Exit process
+@enduml

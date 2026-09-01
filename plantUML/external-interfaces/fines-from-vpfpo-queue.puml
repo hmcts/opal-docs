@@ -1,0 +1,17 @@
+@startuml
+title Fines Service Subscribing to Azure Service Bus Draft Account Queue
+queue "Fines Draft Account queue" as finesDraftAccountQueue <<Queue>> #lightgreen
+participant "Opal Fines Service" as finesService <<Fines Service>> #LightSkyBlue
+database "Opal Fines Database" as finesDb #LightGreen
+
+finesDraftAccountQueue -> finesService ++ : Item placed on queue triggers subscriber
+finesService -> finesService : Start transaction
+alt Duplicate Check
+    finesService -> finesDb ++ : Populate Draft Account table with record from queue (preprocess file, using existing Draft Account service (with minor modifications))
+    finesDb --> finesService -- : Confirmation of storage
+    finesService -> finesService : Commit transaction
+else Duplicate found
+    finesService -> finesService : Do not process
+end
+finesService --> finesDraftAccountQueue -- : Exit process
+@enduml

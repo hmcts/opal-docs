@@ -1,0 +1,17 @@
+@startuml
+title Reprocess Unsuccessful Registrations
+participant "Opal File Handling Service" as fileHandlingService <<File Handling Service>> #LightSkyBlue
+database "Opal File Handling Database" as fileHandlingDb #LightGreen
+database "Opal File Handling Blob Storage" as fileHandlingBlobStorage #LightGreen
+queue "Fines Draft Account queue" as finesDraftAccountQueue <<Queue>> #lightgreen
+
+fileHandlingService -> fileHandlingDb ++ : Retrieve all Registrations with CREATED status
+fileHandlingDb --> fileHandlingService -- : Return records
+fileHandlingService -> fileHandlingBlobStorage ++ : Return all SOURCE_JSON files required to build JSON Payloads for Registrations
+fileHandlingBlobStorage --> fileHandlingService -- : Files returned
+fileHandlingService -> fileHandlingService : Create the Draft Account JSON payloads
+fileHandlingService -> finesDraftAccountQueue ++ : Send JSON payloads to queue
+finesDraftAccountQueue --> fileHandlingService -- : Confirmation of payloads sent to queue
+fileHandlingService -> fileHandlingDb ++ : Update registrations to be SUBMITTED
+fileHandlingDb --> fileHandlingService -- : Confirmation of DB Update
+@enduml
