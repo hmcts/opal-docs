@@ -1,0 +1,11 @@
+@startuml
+title Acknowledgements - File Handler Service Queue Subscriber
+queue "Acknowledgements Queue" as acknowledgementsQueue <<Queue>> #lightgreen
+participant "Opal File Handler Service" as fileHandlerService <<File Handler Service>> #LightSkyBlue
+database "File Handler DB" as fileHandlerDb #lightgreen
+
+acknowledgementsQueue -> fileHandlerService ++ : Item placed onto queue triggers subscriber
+fileHandlerService -> fileHandlerDb ++ : Create acknowledgement entry on database
+fileHandlerDb --> fileHandlerService -- : Confirmation of record creation
+fileHandlerService --> acknowledgementsQueue -- : Exit process
+@enduml

@@ -1,0 +1,11 @@
+@startuml
+title Acknowledgements - Fines Subscriber to Create Draft Account Queue
+queue "Create Draft Account Queue" as createDraftAccountQueue <<Queue>> #lightgreen
+participant "Opal Fines Service" as finesService <<Fines Service>> #lightskyblue
+database "Fines DB" as finesDb #lightgreen
+
+createDraftAccountQueue -> finesService ++ : Item placed onto the queue triggers the subscriber
+finesService -> finesDb ++ : Call stored procedure to publish draft account
+finesDb --> finesService -- : Confirmation of execution
+finesService --> createDraftAccountQueue -- : Exit Process
+@enduml
