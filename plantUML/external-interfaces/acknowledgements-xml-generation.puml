@@ -7,12 +7,16 @@ database "Opal File Handling Blob Storage" as fileHandlingBlobStorage #LightGree
 database "External Interface Blob Store" as externalInterfaceBlobStore <<External System>> #LightCoral
 
 cronjob -> fileHandlingService ++ : Trigger Acknowledgements XML file generation
-fileHandlingService -> fileHandlingDb ++ : Retrieve Acknowledgements grouped by file_gen, CTO and LJA code
-fileHandlingDb --> fileHandlingService -- : Return Acknowledgements
+fileHandlingService -> fileHandlingDb ++ : Retrieve Registrations grouped by file_gen, CTO and LJA code
+fileHandlingDb --> fileHandlingService -- : Return Registrations
+alt All Registrations for that group are processed and ready to be sent
 fileHandlingService -> fileHandlingService : Generate XML File with each acknowledgement its own XML object
 fileHandlingService -> fileHandlingBlobStorage ++ : Store Acknowledgements XML File in Opal Blob Store
 fileHandlingBlobStorage --> fileHandlingService -- : Confirmation of storage
 fileHandlingService -> externalInterfaceBlobStore ++ : Store Acknowledgements XML File in External Interface Blob Store
 externalInterfaceBlobStore --> fileHandlingService -- : Confirmation of Storage
+else Not all registrations are processed
+fileHandlingService --> cronjob : Exit process
+end
 fileHandlingService --> cronjob -- : Exit process
 @enduml

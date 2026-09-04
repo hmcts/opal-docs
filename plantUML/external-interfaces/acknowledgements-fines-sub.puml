@@ -3,9 +3,20 @@ title Acknowledgements - Fines Subscriber to Create Draft Account Queue
 queue "Create Draft Account Queue" as createDraftAccountQueue <<Queue>> #lightgreen
 participant "Opal Fines Service" as finesService <<Fines Service>> #lightskyblue
 database "Fines DB" as finesDb #lightgreen
+queue "Acknowledgements Queue" as acknowledgementsQueue <<Queue>> #lightgreen
 
 createDraftAccountQueue -> finesService ++ : Item placed onto the queue triggers the subscriber
-finesService -> finesDb ++ : Call stored procedure to publish draft account
-finesDb --> finesService -- : Confirmation of execution
+alt Calling stored procedure
+    finesService -> finesDb ++ : Call stored procedure to publish draft account
+    finesDb --> finesService -- : Confirmation of execution
+else Failure calling stored procedure
+    finesService -> finesDb ++ : Draft account will have PUBLISHING_FAILED status
+    finesDb --> finesService -- : Confirmation of status execution
+    finesService --> createDraftAccountQueue : Exit process
+end
+finesService -> acknowledgementsQueue ++ : Pushing acknowledgements DTO for file-handler to generate XML file
+acknowledgementsQueue --> finesService -- : Confirmation of pushing to queue
+finesService -> finesDb ++ : Update status of draft account to be PUBLISHED
+finesDb --> finesService -- : Confirmation of update
 finesService --> createDraftAccountQueue -- : Exit Process
 @enduml
