@@ -3,14 +3,14 @@ title Acknowledgements - Fines Process
 actor "User" as user
 participant "Publish Draft Account" as publishDraftAccountsPage <<UI Page>> #lightskyblue
 participant "Opal Fines Service" as finesService <<Fines Service>> #LightSkyBlue
-queue "Create Draft Account Queue" as createDraftAccountQueue <<Queue>> #lightgreen
+queue "Publish Draft Account Queue" as publishDraftAccountQueue <<Queue>> #lightgreen
 
 publishDraftAccountsPage -> finesService ++ : Get draft accounts that have not been ingested today
 finesService --> publishDraftAccountsPage -- : Return draft accounts (will be grouped by BU front end)
 user -> publishDraftAccountsPage ++ : Select BU(s) to publish
 publishDraftAccountsPage -> finesService ++ : PATCH /draft-accounts to publish accounts
-finesService -> createDraftAccountQueue ++ : Push DTOs for publishing
-createDraftAccountQueue --> finesService -- : Confirmation of pushing to queue
+finesService -> publishDraftAccountQueue ++ : Push DTOs for publishing
+publishDraftAccountQueue --> finesService -- : Confirmation of pushing to queue
 finesService --> publishDraftAccountsPage -- : Confirmation of publishing
 publishDraftAccountsPage --> user -- : Display success message
 @enduml
