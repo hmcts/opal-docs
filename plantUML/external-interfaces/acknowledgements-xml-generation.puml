@@ -3,7 +3,6 @@ title Generate Acknowledgements XML File
 participant "Kubernetes CronJob" as cronjob <<External System>> #LightCoral
 participant "Opal File Handling Service" as fileHandlingService <<File Handling Service>> #LightSkyBlue
 database "Opal File Handling Database" as fileHandlingDb #LightGreen
-database "Opal File Handling Blob Storage" as fileHandlingBlobStorage #LightGreen
 database "External Interface Blob Store" as externalInterfaceBlobStore <<External System>> #LightCoral
 
 cronjob -> fileHandlingService ++ : Trigger Acknowledgements XML file generation
@@ -11,10 +10,10 @@ fileHandlingService -> fileHandlingDb ++ : Retrieve Registrations grouped by fil
 fileHandlingDb --> fileHandlingService -- : Return Registrations
 alt All Registrations for that group are processed and ready to be sent
 fileHandlingService -> fileHandlingService : Generate XML File with each acknowledgement its own XML object
-fileHandlingService -> fileHandlingBlobStorage ++ : Store Acknowledgements XML File in Opal Blob Store
-fileHandlingBlobStorage --> fileHandlingService -- : Confirmation of storage
 fileHandlingService -> externalInterfaceBlobStore ++ : Store Acknowledgements XML File in External Interface Blob Store
 externalInterfaceBlobStore --> fileHandlingService -- : Confirmation of Storage
+fileHandlingService -> fileHandlingDb ++ : Update Registrations chosen with Acknowledgements file name and Acknowledged set to true
+fileHandlingDb --> fileHandlingService -- : Confirmation of update
 else Not all registrations are processed
 fileHandlingService --> cronjob : Exit process
 end
