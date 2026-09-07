@@ -5,10 +5,10 @@ participant "Opal File Handler Service" as fileHandlerService <<File Handler Ser
 database "File Handler DB" as fileHandlerDb #lightgreen
 
 acknowledgementsQueue -> fileHandlerService ++ : Item placed onto queue triggers subscriber
-alt Process item from queue
+alt Process success DTO from queue
 fileHandlerService -> fileHandlerDb ++ : Update Registrations table with vpfpo_registration_id, defendent_account_id and status
 fileHandlerDb --> fileHandlerService -- : Confirmation of update
-else Data error
+else Process error DTO
 fileHandlerService -> fileHandlerDb ++ : Update status to be PUBLISHING_FAILED
 fileHandlerDb --> fileHandlerService -- : Confirmation of update
 end

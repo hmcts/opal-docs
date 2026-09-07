@@ -12,6 +12,8 @@ alt Calling stored procedure
 else Failure calling stored procedure
     finesService -> finesDb ++ : Draft account will have PUBLISHING_FAILED status
     finesDb --> finesService -- : Confirmation of status execution
+    finesService -> acknowledgementsQueue ++ : Send error state DTO to queue
+    acknowledgementsQueue --> finesService -- : Confirmation of pushing to queue
     finesService --> publishDraftAccountQueue : Exit process
 end
 finesService -> acknowledgementsQueue ++ : Pushing acknowledgements DTO for file-handler to generate XML file
