@@ -1,0 +1,14 @@
+@startuml
+title List Draft Casefiles
+actor "Inputter or Checker" as user
+participant "Casefile Dashboard\n<i>UI</i>" as page <<UI Page>> #lightskyblue
+participant "Get Draft Casefiles\nGET /draft-casefiles" as getDrafts <<RM API>> #lightgreen
+database "RM Database" as db <<DRAFT_CASEFILES>> #Yellow
+
+user -> page ++: Open a dashboard tab
+page -> getDrafts ++: Request casefiles for the selected tab\n(casefile_status, submitted_by / not_submitted_by,\ncasefile_status_from_date / casefile_status_to_date where applicable)
+getDrafts -> db ++: Retrieve matching draft casefiles
+db --> getDrafts --: Return matching draft casefiles
+getDrafts --> page --: Return matching draft casefiles
+page --> user --: Sort/page locally; display draft casefile list
+@enduml

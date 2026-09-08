@@ -1,0 +1,37 @@
+@startuml
+title Approve, Reject or Delete a Draft Casefile
+actor "Checker" as user
+participant "Review Draft Casefile\n<i>UI</i>" as page <<UI Page>> #lightskyblue
+participant "Update Draft Casefile\nPATCH /draft-casefiles/{id}" as updateDraft <<RM API>> #lightgreen
+database "RM Database" as db <<DRAFT_CASEFILES>> #Yellow
+queue publishQueue as "RM Casefile Publishing Queue" #Orange
+
+user -> page ++: Confirm Approve, Reject or Delete
+page -> updateDraft ++: Decision, conditional reason and version
+
+alt Approve
+  updateDraft -->o updateDraft: Begin transaction
+  updateDraft -> db ++: Set PUBLISHING_PENDING\nvalidator, snapshot and Approved timeline
+  db --> updateDraft --: Updated Draft Casefile
+  updateDraft -> publishQueue ++: Enqueue draft_casefile_id
+  alt Queue accepts message
+    publishQueue --> updateDraft --: Accepted
+    updateDraft -->o updateDraft: Commit transaction
+    updateDraft --> page --: Updated Draft Casefile JSON\n(PUBLISHING_PENDING)
+  else Queue send fails
+    publishQueue --> updateDraft --: Send failure
+    updateDraft -->o updateDraft: Roll back transaction
+    updateDraft --> page --: Error response
+  end
+else Reject
+  updateDraft -> db ++: Set REJECTED\nreason, validator, snapshot and timeline
+  db --> updateDraft --: Updated Draft Casefile
+  updateDraft --> page --: Updated Draft Casefile JSON\n(REJECTED)
+else Delete
+  updateDraft -> db ++: Set DELETED\nreason, validator, snapshot and timeline
+  db --> updateDraft --: Updated Draft Casefile
+  updateDraft --> page --: Updated Draft Casefile JSON\n(DELETED)
+end
+
+page --> user --: Display decision outcome
+@enduml
