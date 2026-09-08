@@ -1,19 +1,19 @@
 @startuml
 actor "User" as user
 participant "Suspense Item Add Repay Other" as repayOther <<UI Page>> #lightskyblue
-participant "Add Suspense Item Minor Creditor Account" as addsusmc <<Fines API>> #lightgreen
+participant "Repay Suspense Item to Third Party" as repaysusother <<Fines API>> #lightgreen
 database "Fines DB" as db #yellow
 database "Fines DB" as db1 <<Record SP>> #yellow
 
 user ->  repayOther ++: Inputs data
 user ->  repayOther : Clicks 'Confirm and repay' button
-repayOther -> addsusmc ++: Business Unit ID, Suspense Item ID, \nVersion, Note text, Repayment amount \n& Minor Creditor Details (JSON)
-addsusmc -> addsusmc : Start TX
-addsusmc -> db ++: Insert data into relevant tables (JPA)
-db --> addsusmc --: Return Version and IDs of new records
-addsusmc -> db1 ++: Call Record SP with suspense Item ID and Repayment Amount
-db1 --> addsusmc --: Return success/failure status
-addsusmc -> addsusmc : Commit TX
-addsusmc --> repayOther --: Return Creditor Account ID, Suspense Transaction ID \n& Suspense Item Version
+repayOther -> repaysusother ++: Business Unit ID, Suspense Item ID, \nVersion, Note text, Repayment amount \n& Minor Creditor Details (JSON)
+repaysusother -> repaysusother : Start TX
+repaysusother -> db ++: Insert data into relevant tables (JPA)
+db --> repaysusother --: Return Version and IDs of new records
+repaysusother -> db1 ++: Call Record SP with suspense Item ID and Repayment Amount
+db1 --> repaysusother --: Return success/failure status
+repaysusother -> repaysusother : Commit TX
+repaysusother --> repayOther --: Return Creditor Account ID, Suspense Transaction ID \n& Suspense Item Version
 
 @enduml
