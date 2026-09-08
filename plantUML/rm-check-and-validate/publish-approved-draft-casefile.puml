@@ -1,0 +1,34 @@
+@startuml
+title Publish an Approved Draft Casefile
+queue publishQueue as "RM Casefile Publishing Queue" #Orange
+participant consumer as "opal-maintenance-service\nPublish Casefile JMS Consumer" #LightGreen
+database db as "RM Database\np_process_draft_casefiles" #Yellow
+queue deadLetterQueue as "Dead-letter Queue" #Orange
+
+publishQueue -> consumer ++: Deliver draft_casefile_id
+consumer -->o consumer: Begin database transaction
+consumer -> db ++: Call p_process_draft_casefiles(draft_casefile_id)
+note right of db: Atomically creates the live account graph
+
+alt Publication succeeds
+  db --> consumer --: Respondent Account ID and account number
+  consumer -> db ++: Update DRAFT_CASEFILES with PUBLISHED,\naccount_id and account_number
+  db --> consumer --: Updated Draft Casefile
+  consumer -->o consumer: Commit transaction
+  consumer -> publishQueue: Complete message
+else Non-transient business/data failure
+  db --> consumer --: Publication failure
+  consumer -->o consumer: Roll back publication
+  consumer -->o consumer: Begin failure transaction
+  consumer -> db ++: Set PUBLISHING_FAILED
+  db --> consumer --: Updated Draft Casefile
+  consumer -->o consumer: Commit failure transaction
+  consumer -> publishQueue: Complete message
+else Transient database/infrastructure failure
+  db --> consumer --: Transient failure
+  consumer -->o consumer: Roll back; retain PUBLISHING_PENDING
+  consumer -> publishQueue: Return for configured redelivery
+  publishQueue -> deadLetterQueue: If delivery attempts are exhausted
+  note right of deadLetterQueue: Support Operations may replay after resolution
+end
+@enduml

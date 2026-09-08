@@ -1,0 +1,14 @@
+@startuml
+title Resubmit a Rejected Draft Casefile
+actor "Inputter" as user
+participant "Check Case Details\n<i>UI</i>" as page <<UI Page>> #lightskyblue
+participant "Replace Draft Casefile\nPUT /draft-casefiles/{id}" as replaceDraft <<RM API>> #lightgreen
+database "RM Database" as db <<DRAFT_CASEFILES>> #Yellow
+
+user -> page ++: Submit corrected rejected casefile
+page -> replaceDraft ++: Corrected casefile and version
+replaceDraft -> db ++: Replace corrected Casefile\nset RESUBMITTED and refresh snapshot/timeline
+db --> replaceDraft --: Updated draft and version
+replaceDraft --> page --: RESUBMITTED confirmation
+page --> user --: Display resubmission confirmation
+@enduml

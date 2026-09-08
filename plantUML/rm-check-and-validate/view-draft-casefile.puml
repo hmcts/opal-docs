@@ -1,0 +1,14 @@
+@startuml
+title View a Draft Casefile
+actor "Inputter or Checker" as user
+participant "View Casefile\n<i>UI</i>" as page <<UI Page>> #lightskyblue
+participant "Get Draft Casefile\nGET /draft-casefiles/{id}" as getDraft <<RM API>> #lightgreen
+database "RM Database" as db <<DRAFT_CASEFILES>> #Yellow
+
+user -> page ++: Select a draft casefile
+page -> getDraft ++: Request draft casefile {id}
+getDraft -> db ++: Retrieve draft casefile
+db --> getDraft --: Casefile, snapshot, timeline and version
+getDraft --> page --: Complete draft casefile
+page --> user --: Display draft casefile
+@enduml
