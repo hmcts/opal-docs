@@ -1,0 +1,24 @@
+@startuml
+actor "User" as user
+participant "Create Alternate Payment Reference" as uiPage <<UI Page>> #lightskyblue
+participant "Alternate Payment References Service" as alternatePaymentReferencesService <<Opal Fines Service>> #lightgreen
+participant "Business Unit Service" as businessUnitService <<Opal Fines Service>> #lightgreen
+database "Business Units table" as businessUnitsTable <<Fines DB>>#lightgreen
+database "Alternate Payment References table" as aprTable <<Fines DB>>#lightgreen
+
+user -> uiPage ++ : Enters APR and presses submit
+alt Invalid APR
+    uiPage --> user : Display error message
+else Valid APR
+    uiPage -> alternatePaymentReferencesService ++ : POST /defendant-account/{defendantAccountId}/APRs
+    alternatePaymentReferencesService -> businessUnitService ++ : Get business unit with business_unit_id
+    businessUnitService -> businessUnitsTable ++ : Get business unit record
+    businessUnitsTable --> businessUnitService -- : Return business unit record
+    businessUnitService --> alternatePaymentReferencesService -- : Return business unit record
+    alternatePaymentReferencesService -> alternatePaymentReferencesService : Map business_unit_id to business_unit_code
+    alternatePaymentReferencesService -> aprTable ++ : Create new APR record
+    aprTable --> alternatePaymentReferencesService -- : Confirmation of creation
+    alternatePaymentReferencesService --> uiPage -- : Return created record
+    uiPage --> user -- : Confirmation of success
+end
+@enduml

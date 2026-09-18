@@ -1,0 +1,17 @@
+@startuml
+actor "User" as user
+participant "Change Alternate Payment Reference" as uiPage <<UI Page>> #lightskyblue
+participant "Alternate Payment References Service" as alternatePaymentReferencesService <<Opal Fines Service>> #lightgreen
+database "Alternate Payment References table" as aprTable <<Fines DB>>#lightgreen
+
+user -> uiPage ++ : Enters APR and submits
+alt Invalid APR
+    uiPage --> user : Display error message
+else Valid APR
+    uiPage -> alternatePaymentReferencesService ++ : PATCH /defendant-account/{defendantAccountId}/APRs/{aprId}
+    alternatePaymentReferencesService -> aprTable ++ : Update apr_text for that APR entry
+    aprTable --> alternatePaymentReferencesService -- : Confirmation of update
+    alternatePaymentReferencesService --> uiPage -- : Return full record
+    uiPage --> user -- : Success message
+end
+@enduml

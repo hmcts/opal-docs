@@ -1,0 +1,13 @@
+@startuml
+actor "User" as user
+participant "Remove APR" as uiPage <<UI Page>> #lightskyblue
+participant "Alternate Payment References Service" as alternatePaymentReferencesService <<Opal Fines Service>> #lightgreen
+database "Alternate Payment References table" as aprTable <<Fines DB>>#lightgreen
+
+user -> uiPage ++ : User confirms removal of APR
+uiPage -> alternatePaymentReferencesService ++ : DELETE /defendant-account/{defendantAccountId}/APRs/{aprId}
+alternatePaymentReferencesService -> aprTable ++ : Delete given APR record
+aprTable --> alternatePaymentReferencesService -- : Return full delete record
+alternatePaymentReferencesService --> uiPage -- : Return full delete record
+uiPage --> user -- : Confirmation message
+@enduml
