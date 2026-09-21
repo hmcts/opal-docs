@@ -1,0 +1,52 @@
+@startuml
+participant "RefDataMessageProcessor" as processor <<Service>> #lightskyblue
+participant "RefDataUpdateHandler" as handler <<Handler>> #lightskyblue
+participant "RefDataUpdateMapper" as mapper <<Mapper>> #lightskyblue
+database "Service Database" as db #lightgreen
+collections "Cache Manager" as cacheManager <<Cache>> #wheat
+
+-> processor ++ : processMessage(messagePayload)
+
+processor -> processor : Parse and validate message
+processor -> processor : Extract dataProduct
+processor -> processor : Resolve handler for dataProduct
+
+processor -> processor : Read payload.records
+
+loop For each record
+    processor -> handler ++ : Convert record to DTO\nand validate DTO
+    handler --> processor --
+
+    processor -> handler ++ : Find entity for DTO
+    handler -> db ++ : Retrieve entity
+    db --> handler --
+    handler --> processor -- : Optional entity
+
+    alt Entity not found
+        processor -> handler ++ : Create new entity
+        handler --> processor --
+    end
+
+    processor -> handler ++ : Get mapper
+    handler --> processor -- : Mapper
+
+    processor -> mapper ++ : Update entity from DTO
+    mapper --> processor -- : Entity updated
+
+    processor -> handler ++ : Save entity
+    handler -> db ++ : Persist entity
+    db --> handler --
+    handler --> processor --
+end
+
+processor -> handler ++ : Get caches to clear
+handler --> processor -- : Cache names
+
+processor -> cacheManager ++ : Clear caches
+cacheManager --> processor --
+
+<-- processor : Message processed
+
+deactivate processor
+
+@enduml
