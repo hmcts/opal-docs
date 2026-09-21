@@ -8,8 +8,8 @@ collections "Cache Manager" as cacheManager #wheat
 -> processor ++ : processMessage(messagePayload)
 
 processor -> processor : Parse and validate message
-processor -> processor : Extract dataProduct
-processor -> processor : Resolve handler for dataProduct
+processor -> processor : Extract ref data type
+processor -> processor : Resolve handler for ref data type
 
 processor -> processor : Read payload.records
 
