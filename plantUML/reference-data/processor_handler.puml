@@ -1,7 +1,7 @@
 @startuml
-participant "RefDataMessageProcessor" as processor #lightskyblue
-participant "RefDataUpdateHandler" as handler #lightskyblue
-participant "RefDataUpdateMapper" as mapper #lightskyblue
+participant "Processor" as processor #lightskyblue
+participant "Handler" as handler #lightskyblue
+participant "Mapper" as mapper #lightskyblue
 database "Database" as db #lightgreen
 collections "Cache Manager" as cacheManager #wheat
 
