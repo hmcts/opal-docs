@@ -1,9 +1,9 @@
 @startuml
-participant "RefDataMessageProcessor" as processor <<Service>> #lightskyblue
-participant "RefDataUpdateHandler" as handler <<Handler>> #lightskyblue
-participant "RefDataUpdateMapper" as mapper <<Mapper>> #lightskyblue
-database "Service Database" as db #lightgreen
-collections "Cache Manager" as cacheManager <<Cache>> #wheat
+participant "RefDataMessageProcessor" as processor #lightskyblue
+participant "RefDataUpdateHandler" as handler #lightskyblue
+participant "RefDataUpdateMapper" as mapper #lightskyblue
+database "Database" as db #lightgreen
+collections "Cache Manager" as cacheManager #wheat
 
 -> processor ++ : processMessage(messagePayload)
 
