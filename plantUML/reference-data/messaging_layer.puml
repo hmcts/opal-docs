@@ -1,0 +1,19 @@
+@startuml
+participant "ServiceBusProcessorClient" as sdkClient <<Messaging Layer>> #lightskyblue
+participant "ServiceBusMessageConsumer" as consumer <<Messaging Layer>> #lightskyblue
+participant "MessageProcessor" as serviceLayer <<Service Layer>> #lightgreen
+
+-> sdkClient ++ : incoming message
+
+sdkClient -> consumer ++ : consumeMessage(messageContext)
+
+consumer -> serviceLayer ++ : processMessage(messageText)
+serviceLayer --> consumer --
+
+consumer -> consumer : context.complete()
+
+consumer --> sdkClient
+
+[<-- sdkClient : acknowledge
+
+@enduml
