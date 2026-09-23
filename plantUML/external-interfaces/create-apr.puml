@@ -3,8 +3,10 @@ actor "User" as user
 participant "Create Alternate Payment Reference" as uiPage <<UI Page>> #lightskyblue
 participant "Alternate Payment References Service" as alternatePaymentReferencesService <<Opal Fines Service>> #lightgreen
 participant "Business Unit Service" as businessUnitService <<Opal Fines Service>> #lightgreen
+participant "Notes Service" as notesService <<Opal Fines Service>> #lightgreen
 database "Business Units table" as businessUnitsTable <<Fines DB>>#lightgreen
 database "Alternate Payment References table" as aprTable <<Fines DB>>#lightgreen
+database "Notes table" as notesTable <<Fines DB>>#lightgreen
 
 user -> uiPage ++ : Enters APR and presses submit
 alt Invalid APR
@@ -18,6 +20,10 @@ else Valid APR
     alternatePaymentReferencesService -> alternatePaymentReferencesService : Map business_unit_id to business_unit_code
     alternatePaymentReferencesService -> aprTable ++ : Create new APR record
     aprTable --> alternatePaymentReferencesService -- : Confirmation of creation
+    alternatePaymentReferencesService -> notesService ++ :  Add new note to say "APR added"
+    notesService -> notesTable ++ : Add new note into table
+    notesTable --> notesService -- : Confirmation of addition
+    notesService --> alternatePaymentReferencesService -- : Confirmation of new note being added
     alternatePaymentReferencesService --> uiPage -- : Return created record
     uiPage --> user -- : Confirmation of success
 end

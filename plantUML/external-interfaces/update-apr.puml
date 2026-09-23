@@ -2,7 +2,9 @@
 actor "User" as user
 participant "Change Alternate Payment Reference" as uiPage <<UI Page>> #lightskyblue
 participant "Alternate Payment References Service" as alternatePaymentReferencesService <<Opal Fines Service>> #lightgreen
+participant "Notes Service" as notesService <<Opal Fines Service>> #lightgreen
 database "Alternate Payment References table" as aprTable <<Fines DB>>#lightgreen
+database "Notes table" as notesTable <<Fines DB>>#lightgreen
 
 user -> uiPage ++ : Enters APR and submits
 alt Invalid APR
@@ -11,6 +13,10 @@ else Valid APR
     uiPage -> alternatePaymentReferencesService ++ : PATCH /defendant-account/{defendantAccountId}/APRs/{aprId}
     alternatePaymentReferencesService -> aprTable ++ : Update apr_text for that APR entry
     aprTable --> alternatePaymentReferencesService -- : Confirmation of update
+    alternatePaymentReferencesService -> notesService ++ : Add new note to say "APR updated"
+    notesService -> notesTable ++ : Add new note into table
+    notesTable --> notesService -- : Confirmation of addition
+    notesService --> alternatePaymentReferencesService -- : Confirmation of addition
     alternatePaymentReferencesService --> uiPage -- : Return full record
     uiPage --> user -- : Success message
 end
