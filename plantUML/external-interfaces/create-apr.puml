@@ -2,9 +2,8 @@
 actor "User" as user
 participant "Create Alternate Payment Reference" as uiPage <<UI Page>> #lightskyblue
 participant "Alternate Payment References Service" as alternatePaymentReferencesService <<Opal Fines Service>> #lightgreen
-participant "Business Unit Service" as businessUnitService <<Opal Fines Service>> #lightgreen
+participant "Defendant Account Service" as defendantAccountService <<Opal Fines Service>> #lightgreen
 participant "Notes Service" as notesService <<Opal Fines Service>> #lightgreen
-database "Business Units table" as businessUnitsTable <<Fines DB>>#lightgreen
 database "Alternate Payment References table" as aprTable <<Fines DB>>#lightgreen
 database "Notes table" as notesTable <<Fines DB>>#lightgreen
 
@@ -13,11 +12,8 @@ alt Invalid APR
     uiPage --> user : Display error message
 else Valid APR
     uiPage -> alternatePaymentReferencesService ++ : POST /defendant-account/{defendantAccountId}/APRs
-    alternatePaymentReferencesService -> businessUnitService ++ : Get business unit with business_unit_id
-    businessUnitService -> businessUnitsTable ++ : Get business unit record
-    businessUnitsTable --> businessUnitService -- : Return business unit record
-    businessUnitService --> alternatePaymentReferencesService -- : Return business unit record
-    alternatePaymentReferencesService -> alternatePaymentReferencesService : Map business_unit_id to business_unit_code
+    alternatePaymentReferencesService -> defendantAccountService ++ : Get the defendant account summary
+    defendantAccountService --> alternatePaymentReferencesService -- : Use the BusinessUnitSummaryCommon to get business_unit_code
     alternatePaymentReferencesService -> aprTable ++ : Create new APR record
     aprTable --> alternatePaymentReferencesService -- : Confirmation of creation
     alternatePaymentReferencesService -> notesService ++ :  Add new note to say "Alternate payment reference added | <apr_text>"
