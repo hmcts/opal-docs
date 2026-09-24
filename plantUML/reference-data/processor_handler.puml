@@ -1,7 +1,6 @@
 @startuml
 participant "Processor" as processor #lightskyblue
 participant "Handler" as handler #lightskyblue
-participant "Mapper" as mapper #lightskyblue
 database "Database" as db #lightgreen
 collections "Cache Manager" as cacheManager #wheat
 
@@ -30,8 +29,8 @@ loop For each record
     processor -> handler ++ : Get mapper
     handler --> processor -- : Mapper
 
-    processor -> mapper ++ : Update entity from DTO
-    mapper --> processor -- : Entity updated
+    processor -> handler ++ : Update entity from DTO
+    handler --> processor -- : Entity updated
 
     processor -> handler ++ : Save entity
     handler -> db ++ : Persist entity
