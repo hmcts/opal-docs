@@ -26,9 +26,6 @@ loop For each record
         handler --> processor --
     end
 
-    processor -> handler ++ : Get mapper
-    handler --> processor -- : Mapper
-
     processor -> handler ++ : Update entity from DTO
     handler --> processor -- : Entity updated
 
