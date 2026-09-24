@@ -13,7 +13,7 @@ alt Invalid APR
 else Valid APR
     uiPage -> alternatePaymentReferencesService ++ : POST /defendant-account/{defendantAccountId}/APRs
     alternatePaymentReferencesService -> defendantAccountService ++ : Get the defendant account summary
-    defendantAccountService --> alternatePaymentReferencesService -- : Use the BusinessUnitSummaryCommon to get business_unit_code, business_unit_id
+    defendantAccountService --> alternatePaymentReferencesService -- : Use the BusinessUnitSummaryCommon to get business_unit_id
     alternatePaymentReferencesService -> aprTable ++ : Create new APR record
     aprTable --> alternatePaymentReferencesService -- : Confirmation of creation
     alternatePaymentReferencesService -> notesService ++ :  Add new note to say "Alternate payment reference added | <apr_text>"
