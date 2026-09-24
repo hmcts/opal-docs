@@ -13,7 +13,7 @@ else Valid APR
     uiPage -> alternatePaymentReferencesService ++ : PATCH /defendant-account/{defendantAccountId}/APRs/{aprId}
     alternatePaymentReferencesService -> aprTable ++ : Update apr_text for that APR entry
     aprTable --> alternatePaymentReferencesService -- : Confirmation of update
-    alternatePaymentReferencesService -> notesService ++ : Add new note to say "APR updated"
+    alternatePaymentReferencesService -> notesService ++ : Add new note to say "Alternate payment reference updated | <apr_text>"
     notesService -> notesTable ++ : Add new note into table
     notesTable --> notesService -- : Confirmation of addition
     notesService --> alternatePaymentReferencesService -- : Confirmation of addition

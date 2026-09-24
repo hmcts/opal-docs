@@ -10,7 +10,7 @@ user -> uiPage ++ : User confirms removal of APR
 uiPage -> alternatePaymentReferencesService ++ : DELETE /defendant-account/{defendantAccountId}/APRs/{aprId}
 alternatePaymentReferencesService -> aprTable ++ : Delete given APR record
 aprTable --> alternatePaymentReferencesService -- : Return full delete record
-alternatePaymentReferencesService -> notesService ++ : Add new note to say "APR deleted"
+alternatePaymentReferencesService -> notesService ++ : Add new note to say "Alternate payment reference deleted | <apr_text>"
 notesService -> notesTable ++ : Add new note to notes table
 notesTable --> notesService -- : Confirmation of addition
 notesService --> alternatePaymentReferencesService -- : Confirmation of addition
