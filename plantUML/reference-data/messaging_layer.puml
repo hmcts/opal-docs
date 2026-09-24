@@ -8,9 +8,14 @@ participant "MessageProcessor" as serviceLayer <<Service Layer>> #lightgreen
 sdkClient -> consumer ++ : consumeMessage(messageContext)
 
 consumer -> serviceLayer ++ : processMessage(messageText)
-serviceLayer --> consumer --
 
-consumer -> consumer : context.complete()
+alt Service layer succeeds
+    serviceLayer --> consumer --
+    consumer -> consumer : context.complete()
+else Service layer throws exception
+    serviceLayer --> consumer -- : exception
+    consumer -> consumer : context.abandon()
+end
 
 consumer --> sdkClient
 
