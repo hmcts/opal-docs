@@ -1,0 +1,19 @@
+@startuml
+actor "User" as user
+participant "Confirm Defendant Details And Repay" as repayOther <<UI Page>> #lightskyblue
+participant "Repay Suspense Item to Defendant" as repaysusother <<Fines API>> #lightgreen
+database "Fines DB" as db #yellow
+database "Fines DB" as db1 <<Record SP>> #yellow
+
+user ->  repayOther ++: Inputs data
+user ->  repayOther : Clicks 'Confirm and repay' button
+repayOther -> repaysusother ++: Business Unit ID, Suspense Item ID, \nVersion, Note text, Repayment amount \n& Defendant Account ID (JSON)
+repaysusother -> repaysusother : Start TX
+repaysusother -> db ++: Insert data into relevant tables (JPA)
+db --> repaysusother --: Return Version and IDs of new records
+repaysusother -> db1 ++: Call Record SP with suspense Item ID and Repayment Amount
+db1 --> repaysusother --: Return success/failure status
+repaysusother -> repaysusother : Commit TX
+repaysusother --> repayOther --: Return Suspense Item Version \n& Defendant Account Version
+
+@enduml

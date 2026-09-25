@@ -1,0 +1,15 @@
+@startuml
+actor "User" as user
+participant "Find Defendant to Repay" as repayFind <<UI Page>> #lightskyblue
+participant "Confirm Defendant Details and Repay" as repayConfirm <<UI Page>> #lightskyblue
+participant "Get Defendant Account At A Glance \nBy Account Number" as getdefacc <<Fines API>> #lightgreen
+database "Fines DB" as db <<View>> #yellow
+
+user -> repayFind ++: Input Account Number and Search
+repayFind -> getdefacc ++: Get Defendant Account At A Glance By Account Number
+getdefacc -> db ++: Query View with Account Number and Business Unit ID
+db --> getdefacc --: Return Defendant Account At A Glance
+getdefacc --> repayFind --: Return Defendant Account At A Glance
+repayFind -> repayConfirm --++: Display Defendant Account At A Glance details
+
+@enduml
