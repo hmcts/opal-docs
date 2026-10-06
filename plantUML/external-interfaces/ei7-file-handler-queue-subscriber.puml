@@ -1,0 +1,22 @@
+@startuml
+title "File Handler - Card Request Queue Subscriber"
+queue "Card Request Queue" as cardRequestQueue <<Queue>> #lightgreen
+participant "Opal File Handler Service" as fileHandlerService <<File Handler Service>> #LightSkyBlue
+database "File Handler Database" as fileHandlerDb #LightGreen
+database "Opal File Handling Blob Storage" as fileHandlingBlobStorage #LightGreen
+database "BAIS SFTP Server" as baisSftpServer <<External System>> #LightCoral
+
+cardRequestQueue -> fileHandlerService ++ : Item placed onto queue
+fileHandlerService -> fileHandlerDb ++ : Create new SOURCE_JSON interface file record
+fileHandlerDb --> fileHandlerService -- : Confirmation of creation in DB
+fileHandlerService -> fileHandlingBlobStorage ++ : Upload SOURCE_JSON to opal blob store
+fileHandlingBlobStorage --> fileHandlerService -- : Confirmation of upload
+fileHandlerService -> fileHandlerService : Transform SOURCE_JSON to TRANSFORMED_JSON (Allpay Out XML)
+fileHandlerService -> fileHandlerDb ++ : Create new TRANSFORMED_JSON interface file record
+fileHandlerDb --> fileHandlerService -- : Confirmation of creation in DB
+fileHandlerService -> fileHandlingBlobStorage ++ : Upload TRANSFORMED_JSON to opal blob store
+fileHandlingBlobStorage --> fileHandlerService -- : Confirmation of upload
+fileHandlerService -> baisSftpServer ++ : Upload Allpay Out XML to BAIS
+baisSftpServer --> fileHandlerService -- : Confirmation of upload
+fileHandlerService --> cardRequestQueue -- : Exit process
+@enduml
