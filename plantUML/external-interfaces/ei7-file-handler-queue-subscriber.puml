@@ -7,16 +7,22 @@ database "Opal File Handling Blob Storage" as fileHandlingBlobStorage #LightGree
 database "BAIS SFTP Server" as baisSftpServer <<External System>> #LightCoral
 
 cardRequestQueue -> fileHandlerService ++ : Item placed onto queue
-fileHandlerService -> fileHandlerDb ++ : Create new SOURCE_JSON interface file record
-fileHandlerDb --> fileHandlerService -- : Confirmation of creation in DB
-fileHandlerService -> fileHandlingBlobStorage ++ : Upload SOURCE_JSON to opal blob store
-fileHandlingBlobStorage --> fileHandlerService -- : Confirmation of upload
-fileHandlerService -> fileHandlerService : Transform SOURCE_JSON to TRANSFORMED_JSON (Allpay Out XML)
-fileHandlerService -> fileHandlerDb ++ : Create new TRANSFORMED_JSON interface file record
-fileHandlerDb --> fileHandlerService -- : Confirmation of creation in DB
-fileHandlerService -> fileHandlingBlobStorage ++ : Upload TRANSFORMED_JSON to opal blob store
-fileHandlingBlobStorage --> fileHandlerService -- : Confirmation of upload
-fileHandlerService -> baisSftpServer ++ : Upload Allpay Out XML to BAIS
-baisSftpServer --> fileHandlerService -- : Confirmation of upload
+fileHandlerService -> fileHandlerDb ++ : Get interface job IDs from interface files table
+fileHandlerDb --> fileHandlerService -- : Records returned
+group Duplicate Fines Interface Job ID supplied
+    fileHandlerService --> cardRequestQueue : Exit Process
+else Non Duplicate
+    fileHandlerService -> fileHandlerDb ++ : Create new SOURCE_JSON interface file record
+    fileHandlerDb --> fileHandlerService -- : Confirmation of creation in DB
+    fileHandlerService -> fileHandlingBlobStorage ++ : Upload SOURCE_JSON to opal blob store
+    fileHandlingBlobStorage --> fileHandlerService -- : Confirmation of upload
+    fileHandlerService -> fileHandlerService : Transform SOURCE_JSON to TRANSFORMED_JSON (Allpay Out file)
+    fileHandlerService -> fileHandlerDb ++ : Create new TRANSFORMED_JSON interface file record
+    fileHandlerDb --> fileHandlerService -- : Confirmation of creation in DB
+    fileHandlerService -> fileHandlingBlobStorage ++ : Upload TRANSFORMED_JSON to opal blob store
+    fileHandlingBlobStorage --> fileHandlerService -- : Confirmation of upload
+    fileHandlerService -> baisSftpServer ++ : Upload Allpay Out file to BAIS
+    baisSftpServer --> fileHandlerService -- : Confirmation of upload
+end
 fileHandlerService --> cardRequestQueue -- : Exit process
 @enduml
