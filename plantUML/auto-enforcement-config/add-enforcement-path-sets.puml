@@ -1,0 +1,22 @@
+@startuml
+Title: Auto Enforcement Configuration - Add Enforcement Path Set
+actor User
+participant "Auto Enforcement Configuration\n(Enforcement paths tab)" as autoEnforcementConfigurationUI <<UI Page>> #lightskyblue
+participant "Create Enforcement Path Set" as createEnforcementPathSetUI <<UI Page>> #lightskyblue
+participant "Add Enforcement Path Set" as addEnforcementPathSetService <<Fines Service>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+User -> autoEnforcementConfigurationUI ++ : Click create new enforcement path set
+autoEnforcementConfigurationUI -> createEnforcementPathSetUI ++ : Render create enforcement path set page
+createEnforcementPathSetUI --> User -- : Display create enforcement path set page
+User -> createEnforcementPathSetUI ++ : Enter enforcement path set details
+createEnforcementPathSetUI -> addEnforcementPathSetService ++: Add enforcement path set
+addEnforcementPathSetService -> db ++ : Insert data (JPA)
+db --> addEnforcementPathSetService -- : Acknowledgement
+addEnforcementPathSetService -> db ++ : Select created enforcement path set (JPA)
+db --> addEnforcementPathSetService -- : Return created enforcement path set data
+addEnforcementPathSetService --> createEnforcementPathSetUI -- : Return full enforcement path set
+createEnforcementPathSetUI --> autoEnforcementConfigurationUI -- : Navigate to enforcement path set
+autoEnforcementConfigurationUI --> User -- : Display enforcement path set
+
+@enduml
