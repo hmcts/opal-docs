@@ -1,0 +1,29 @@
+@startuml
+participant "Ref Data Topic" as topic <<Azure>>
+participant "ServiceBusSessionReceiverClient" as receiverClient <<Azure SDK>> #lightskyblue
+
+participant "ServiceBusSessionReceiver" as receiver <<Messaging Layer>> #lightskyblue
+participant "MessageProcessor" as serviceLayer <<Service Layer>> #lightgreen
+
+receiver -> receiverClient : pull batch of messages
+receiverClient -> topic : pull batch of messages
+topic --> receiverClient : batch of messages
+receiverClient --> receiver : batch of messages
+
+loop For each message in batch
+    receiver -> serviceLayer ++ : processMessage(messageText)
+
+    alt Service layer succeeds
+        serviceLayer --> receiver --
+        receiver -> receiver : context.complete()
+    else Service layer throws exception
+        serviceLayer --> receiver -- : exception
+        receiver -> receiver : context.abandon()
+        break No more messages are processed
+        end
+    end
+end
+
+topic<-- receiver : acknowledge
+
+@enduml
