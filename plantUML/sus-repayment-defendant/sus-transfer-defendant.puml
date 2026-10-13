@@ -1,0 +1,19 @@
+@startuml
+actor "User" as user
+participant "Confirm Defendant Details And Transfer" as transferOther <<UI Page>> #lightskyblue
+participant "Transfer Suspense Item to Defendant" as tranSusOther <<Fines API>> #lightgreen
+database "Fines DB" as db #yellow
+database "Fines DB" as db1 <<Transfer SP>> #yellow
+
+user ->  transferOther ++: Inputs data
+user ->  transferOther : Clicks 'Confirm and repay' button
+transferOther -> tranSusOther ++: Business Unit ID, Suspense Item ID, \nVersion, Note text, Transfer amount \n& Defendant Account ID (JSON)
+tranSusOther -> tranSusOther : Start TX
+tranSusOther -> db ++: Insert data into relevant tables (JPA)
+db --> tranSusOther --: Return Version and IDs of new records
+tranSusOther -> db1 ++: Call Transfer SP with suspense Item ID and Transfer Amount
+db1 --> tranSusOther --: Return success/failure status
+tranSusOther -> tranSusOther : Commit TX
+tranSusOther --> transferOther --: Return Suspense Item Version \n& Defendant Account Version
+
+@enduml
