@@ -5,7 +5,7 @@ participant "Alternate Payment References Service" as alternatePaymentReferences
 database "Alternate Payment References table" as aprTable <<Fines DB>>#lightgreen
 
 user -> uiPage ++ : Loads page
-uiPage -> alternatePaymentReferencesService ++ : GET /defendant-account/{defendantAccountId}/APRs
+uiPage -> alternatePaymentReferencesService ++ : GET /defendant-accounts/{defendantAccountId}/APRs
 alternatePaymentReferencesService -> aprTable ++ : Get APR records for that defendant account
 aprTable --> alternatePaymentReferencesService -- : Return records
 alternatePaymentReferencesService --> uiPage -- : Return list of APRs for that defendant account

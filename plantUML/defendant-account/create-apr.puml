@@ -11,7 +11,7 @@ user -> uiPage ++ : Enters APR and presses submit
 alt Invalid APR
     uiPage --> user : Display error message
 else Valid APR
-    uiPage -> alternatePaymentReferencesService ++ : POST /defendant-account/{defendantAccountId}/APRs
+    uiPage -> alternatePaymentReferencesService ++ : POST /defendant-accounts/{defendantAccountId}/APRs
     alternatePaymentReferencesService -> defendantAccountService ++ : Get the defendant account summary
     defendantAccountService --> alternatePaymentReferencesService -- : Use the BusinessUnitSummaryCommon to get business_unit_id
     alternatePaymentReferencesService -> aprTable ++ : Create new APR record

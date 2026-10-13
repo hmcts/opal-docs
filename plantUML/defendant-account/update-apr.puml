@@ -10,7 +10,7 @@ user -> uiPage ++ : Enters APR and submits
 alt Invalid APR
     uiPage --> user : Display error message
 else Valid APR
-    uiPage -> alternatePaymentReferencesService ++ : PATCH /defendant-account/{defendantAccountId}/APRs/{aprId}
+    uiPage -> alternatePaymentReferencesService ++ : PATCH /defendant-accounts/{defendantAccountId}/APRs/{aprId}
     alternatePaymentReferencesService -> aprTable ++ : Update apr_text for that APR entry
     aprTable --> alternatePaymentReferencesService -- : Confirmation of update
     alternatePaymentReferencesService -> notesService ++ : Add new note to say "Alternate payment reference updated | <apr_text>"
