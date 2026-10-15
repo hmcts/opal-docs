@@ -1,0 +1,21 @@
+@startuml
+actor "User" as user
+participant "Enter Amount To Adjust" as enterAdjust <<UI Page>> #lightskyblue
+participant "Create Defendant Account \nImposition Adjustment" as impAdj <<Fines API>> #lightgreen
+database "Fines DB" as db1 <<Create Suspense Item SP>> #yellow
+database "Fines DB" as db #yellow
+database "Fines DB" as db2 <<Control Totals SP>> #yellow
+
+user ->  enterAdjust ++: Inputs data \n& clicks 'Adjust' button
+enterAdjust -> impAdj ++: Business Unit ID, Imposition ID, \nDefendant Account ID, Version, \nNote text & Adjust amount (JSON)
+impAdj -> impAdj : Start TX
+impAdj -> db1 ++: Call Create Suspense Item SP
+db1 --> impAdj --: Return Suspense Item ID
+impAdj -> db ++: Insert data into Defendant Account, \nTransactions and Notes tables (JPA)
+db --> impAdj --: Return Version and IDs of new records
+impAdj -> db2 ++: Call Control Totals SP with Adjust amount \n& Business Unit ID
+db2 --> impAdj --: Return Control IDs
+impAdj -> impAdj : Commit TX
+impAdj --> enterAdjust --: Return IDs for created fields \n& updated versions
+
+@enduml

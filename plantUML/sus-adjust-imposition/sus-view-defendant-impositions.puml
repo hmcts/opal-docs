@@ -1,0 +1,14 @@
+@startuml
+actor User
+participant "Select imposition to adjust" as viewScreen <<UI Page>> #lightskyblue
+participant "Get Defendant Account Impositions" as getapi <<Fines API>> #lightgreen
+database "Fines Database" as db  #yellow
+
+User -> viewScreen ++ : Navigates to tab
+viewScreen --> getapi ++ : Defendant Account ID
+getapi --> db ++ : Get data (JPA)
+db --> getapi -- : Return data (JSON)
+getapi --> viewScreen --: Return data (JSON)
+viewScreen -> viewScreen : Display data
+getapi --
+@enduml
