@@ -15,10 +15,10 @@ else Non Duplicate
     group Process Requests
         fileHandlerService -> fileHandlerDb ++ : Create new SOURCE_JSON interface file record
         fileHandlerDb --> fileHandlerService -- : Confirmation of creation in DB
-        fileHandlerService -> fileHandlerService : Transform SOURCE_JSON to TRANSFORMED_JSON (Allpay Out file)
-        fileHandlerService -> fileHandlerDb ++ : Create new TRANSFORMED_JSON interface file record
+        fileHandlerService -> fileHandlerService : Transform SOURCE_JSON to TRANSFORMED file (Allpay Out file)
+        fileHandlerService -> fileHandlerDb ++ : Create new TRANSFORMED file interface file record
         fileHandlerDb --> fileHandlerService -- : Confirmation of creation in DB
-        fileHandlerService -> fileHandlingBlobStorage ++ : Upload SOURCE_JSON and TRANSFORMED_JSON to opal blob store
+        fileHandlerService -> fileHandlingBlobStorage ++ : Upload SOURCE_JSON and TRANSFORMED file to opal blob store
         fileHandlingBlobStorage --> fileHandlerService -- : Confirmation of upload
         fileHandlerService -> baisSftpServer ++ : Upload Allpay Out file to BAIS
         baisSftpServer --> fileHandlerService -- : Confirmation of upload
