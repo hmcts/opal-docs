@@ -1,18 +1,19 @@
 @startuml
 title "File Handler - Card Request Queue Subscriber"
 queue "Card Request Queue" as cardRequestQueue <<Queue>> #lightgreen
-participant "Opal File Handler Service" as fileHandlerService <<File Handler Service>> #LightSkyBlue
-database "File Handler Database" as fileHandlerDb #LightGreen
-database "Opal File Handling Blob Storage" as fileHandlingBlobStorage #LightGreen
+participant "Card Request Queue Subscriber" as fileHandlerService <<File Handler Service>> #LightSkyBlue
+database "File Handler Database" as fileHandlerDb <<DB>> #LightGreen
+database "Opal File Handling Blob Storage" as fileHandlingBlobStorage <<Blob Store>> #LightGreen
 database "BAIS SFTP Server" as baisSftpServer <<External System>> #LightCoral
 
 cardRequestQueue -> fileHandlerService ++ : Item placed onto queue
-fileHandlerService -> fileHandlerDb ++ : Get interface job IDs from interface files table
+fileHandlerService -> fileHandlerDb ++ : Get interface job IDs and file names for today from interface files table
 fileHandlerDb --> fileHandlerService -- : Records returned
 group Duplicate Fines Interface Job ID supplied
     fileHandlerService --> cardRequestQueue : Exit Process
 else Non Duplicate
     group Process Requests
+        fileHandlerService -> fileHandlerService : Generate new file name based on sequence
         fileHandlerService -> fileHandlerDb ++ : Create new SOURCE_JSON interface file record
         fileHandlerDb --> fileHandlerService -- : Confirmation of creation in DB
         fileHandlerService -> fileHandlerService : Transform SOURCE_JSON to TRANSFORMED file (Allpay Out file)

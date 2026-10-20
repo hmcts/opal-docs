@@ -1,14 +1,14 @@
 @startuml
 title "Fines - Cron Job"
 participant "Kubernetes CronJob" as cronjob <<External System>> #LightCoral
-participant "Opal Fines Service" as finesService <<Fines Service>> #LightSkyBlue
-database "Fines Database" as finesDb #LightGreen
+participant "AllPay Out File Generation Service" as finesService <<Fines Service>> #LightSkyBlue
+database "Fines Database" as finesDb <<DB>> #LightGreen
 queue "Card Request Queue" as cardRequestQueue <<Queue>> #lightgreen
 
 cronjob -> finesService ++ : Trigger process
 group DB Transaction
     finesService -> finesDb ++ : Call stored procedure
-    finesDb --> finesService -- : Return JSON list of requests to be processed, file name and interface file id
+    finesDb --> finesService -- : Return JSON list of requests to be processed and interface file id
 else Failure
     finesService --> cronjob : Rollback and exit process
 end
@@ -19,6 +19,12 @@ group DB Transaction
     finesDb --> finesService -- : Confirmation of deletion
 else Failure
     finesService --> cronjob : Rollback and exit process
+end
+group DB Transaction
+    finesService -> finesDb ++ : Update interface job record setting the status to Completed and completed_datetime
+    finesDb --> finesService -- : Confirmation of update
+else Failure
+    finesService --> cronjob -- : Exit process
 end
 finesService --> cronjob -- : Exit process
 @enduml
