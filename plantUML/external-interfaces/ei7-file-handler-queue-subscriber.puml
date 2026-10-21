@@ -9,10 +9,10 @@ database "BAIS SFTP Server" as baisSftpServer <<External System>> #LightCoral
 cardRequestQueue -> fileHandlerService ++ : Item placed onto queue
 fileHandlerService -> fileHandlerDb ++ : Get interface job IDs and file names for today from interface files table
 fileHandlerDb --> fileHandlerService -- : Records returned
-group Duplicate Fines Interface Job ID supplied
+alt Duplicate Fines Interface Job ID supplied
     fileHandlerService --> cardRequestQueue : Exit Process
 else Non Duplicate
-    group Process Requests
+    alt Process Requests
         fileHandlerService -> fileHandlerService : Generate new file name based on sequence
         fileHandlerService -> fileHandlerDb ++ : Create new SOURCE_JSON interface file record
         fileHandlerDb --> fileHandlerService -- : Confirmation of creation in DB

@@ -7,12 +7,16 @@ queue "Card Request Queue" as cardRequestQueue <<Queue>> #lightgreen
 
 cronjob -> finesService ++ : Trigger process
 group DB Transaction
-    finesService -> finesDb ++ : Call stored procedure
-    finesDb --> finesService -- : Return JSON list of requests to be processed and interface job id
-else Failure
-    finesService --> cronjob : Rollback and exit process
+    finesService -> finesDb ++ : Call Stored Procedure
+    alt Success
+        finesDb --> finesService : Return JSON list of requests to be processed and interface job ID
+        finesService --> finesService : Commit
+    else Failure
+        finesDb --> finesService -- : Throws DB exception
+        finesService --> cronjob : Rollback and exit process
+    end
 end
-group Empty JSON List
+alt Empty JSON List
     group DB Transaction
         finesService -> finesDb ++ : Update the interface jobs to be completed
         finesDb --> finesService -- : Confirmation of update
