@@ -12,19 +12,26 @@ group DB Transaction
 else Failure
     finesService --> cronjob : Rollback and exit process
 end
-finesService -> cardRequestQueue ++ : Send the JSON list to the queue for processing on the file handler service
-cardRequestQueue --> finesService -- : Confirmation of queue update
-group DB Transaction
-    finesService -> finesDb ++ : Delete the records from the card payments requests table
-    finesDb --> finesService -- : Confirmation of deletion
-else Failure
-    finesService --> cronjob : Rollback and exit process
-end
-group DB Transaction
-    finesService -> finesDb ++ : Update interface job record setting the status to Completed and completed_datetime
-    finesDb --> finesService -- : Confirmation of update
-else Failure
-    finesService --> cronjob -- : Exit process
+group Empty JSON List
+    group DB Transaction
+        finesService -> finesDb ++ : Update the interface jobs to be completed
+        finesDb --> finesService -- : Confirmation of update
+    else Failure
+        finesService --> cronjob : Rollback and exit process
+    end
+else Non Empty JSON list from Stored Procedure
+    finesService -> cardRequestQueue ++ : Send the JSON list to the queue for processing on the file handler service
+    cardRequestQueue --> finesService -- : Confirmation of queue update
+    group DB Transaction
+        finesService -> finesDb ++ : Delete the records from the card payments requests table
+        finesDb --> finesService -- : Confirmation of deletion
+        finesService -> finesDb ++ : Update interface job record setting the status to Completed and completed_datetime
+        finesDb --> finesService -- : Confirmation of update
+        finesService -> finesDb ++ : Update defendant account's payment fields
+        finesDb --> finesService -- : Confirmation of update
+    else Failure
+        finesService --> cronjob : Rollback and exit process
+    end
 end
 finesService --> cronjob -- : Exit process
 @enduml
