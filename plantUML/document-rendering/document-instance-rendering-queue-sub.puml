@@ -1,0 +1,32 @@
+@startuml
+title Document Instance Rendering Queue Subscriber
+queue "document-instance-rendering-queue" as documentInstanceRenderingQueue <<Fines Service Queue>> #lightgreen
+participant "Document Rendering Service" as finesService <<Fines Service>> #LightSkyBlue
+database "Opal Fines Database" as finesDb #LightGreen
+database "Documents Blob Storage Container" as documentsContainer #LightGreen
+participant "Document Rendering Service" as docRenderingService <<Common Lib (In fines))>> #lightgreen
+participant "Docmosis Render API" as docmosisRender <<Docmosis API>> #lightgreen
+queue "pdpl-logging-queue" as pdplQueue <<Logging Service Queue>> #lightgreen
+
+documentInstanceRenderingQueue -> finesService ++ : Document instance id from rendering queue
+finesService -> finesDb ++ : Get associated Document Instance record
+finesDb --> finesService -- : Return associated Document Instance record
+finesService -> documentsContainer ++ : Get document instance content from blob storage
+documentsContainer --> finesService -- : Return document instance content
+
+finesService --> pdplQueue ++ : Log document instance rendering request (Using pdpl data from document instance record)
+pdplQueue --> finesService -- : Confirmation of message sent
+finesService --> docRenderingService ++ : Request to render document instance content
+docRenderingService --> docmosisRender ++ : Request to generate pdf
+docmosisRender --> docRenderingService -- : Return generated pdf
+docRenderingService --> finesService -- : Return generated pdf
+finesService -> documentsContainer ++ : Add rendered document instance content to blob storage
+documentsContainer --> finesService -- : Confirmation of storage
+finesService -> finesDb ++ : Update document instance files table with a reference to the rendered document blob store location
+finesDb --> finesService -- : Confirmation of document instance files record update
+
+finesService -> finesDb ++ : Update document instance record with update status to READY
+finesDb --> finesService -- : Confirmation of document instance record update
+finesService -> documentInstanceRenderingQueue -- : Acknowledge message from rendering queue
+
+@enduml
