@@ -18,23 +18,29 @@ group DB Transaction
 end
 alt Empty JSON List
     group DB Transaction
-        finesService -> finesDb ++ : Update the interface jobs to be completed
-        finesDb --> finesService -- : Confirmation of update
-    else Failure
-        finesService --> cronjob : Rollback and exit process
+        alt Success
+            finesService -> finesDb ++ : Update the interface jobs to be completed
+            finesDb --> finesService -- : Confirmation of update
+            finesService --> finesService : Commit
+        else Failure
+            finesService --> cronjob : Rollback and exit process
+        end
     end
 else Non Empty JSON list from Stored Procedure
     finesService -> cardRequestQueue ++ : Send the JSON list to the queue for processing on the file handler service
     cardRequestQueue --> finesService -- : Confirmation of queue update
     group DB Transaction
-        finesService -> finesDb ++ : Delete the records from the card payments requests table
-        finesDb --> finesService -- : Confirmation of deletion
-        finesService -> finesDb ++ : Update interface job record setting the status to Completed and completed_datetime
-        finesDb --> finesService -- : Confirmation of update
-        finesService -> finesDb ++ : Update defendant account's payment fields
-        finesDb --> finesService -- : Confirmation of update
-    else Failure
-        finesService --> cronjob : Rollback and exit process
+        alt Success
+            finesService -> finesDb ++ : Delete the records from the card payments requests table
+            finesDb --> finesService -- : Confirmation of deletion
+            finesService -> finesDb ++ : Update interface job record setting the status to Completed and completed_datetime
+            finesDb --> finesService -- : Confirmation of update
+            finesService -> finesDb ++ : Update defendant account's payment fields
+            finesDb --> finesService -- : Confirmation of update
+            finesService --> finesService : Commit
+        else Failure
+            finesService --> cronjob : Rollback and exit process
+        end
     end
 end
 finesService --> cronjob -- : Exit process

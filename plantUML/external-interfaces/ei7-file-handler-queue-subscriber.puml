@@ -4,26 +4,32 @@ queue "Card Request Queue" as cardRequestQueue <<Queue>> #lightgreen
 participant "Card Request Queue Subscriber" as fileHandlerService <<File Handler Service>> #LightSkyBlue
 database "File Handler Database" as fileHandlerDb <<DB>> #LightGreen
 database "Opal File Handling Blob Storage" as fileHandlingBlobStorage <<Blob Store>> #LightGreen
+queue "PDPL Logging Queue" as pdplQueue <<Queue>> #lightgreen
 database "BAIS SFTP Server" as baisSftpServer <<External System>> #LightCoral
 
 cardRequestQueue -> fileHandlerService ++ : Item placed onto queue
-fileHandlerService -> fileHandlerDb ++ : Get interface job IDs and file names for today from interface files table
-fileHandlerDb --> fileHandlerService -- : Records returned
-alt Duplicate Fines Interface Job ID supplied
-    fileHandlerService --> cardRequestQueue : Exit Process
-else Non Duplicate
-    alt Process Requests
-        fileHandlerService -> fileHandlerService : Generate new file name based on sequence
-        fileHandlerService -> fileHandlerDb ++ : Create new SOURCE_JSON interface file record
-        fileHandlerDb --> fileHandlerService -- : Confirmation of creation in DB
-        fileHandlerService -> fileHandlerService : Transform SOURCE_JSON to TRANSFORMED file (Allpay Out file)
-        fileHandlerService -> fileHandlerDb ++ : Create new TRANSFORMED file interface file record
-        fileHandlerDb --> fileHandlerService -- : Confirmation of creation in DB
-        fileHandlerService -> fileHandlingBlobStorage ++ : Upload SOURCE_JSON and TRANSFORMED file to opal blob store
-        fileHandlingBlobStorage --> fileHandlerService -- : Confirmation of upload
-        fileHandlerService -> baisSftpServer ++ : Upload Allpay Out file to BAIS
-        baisSftpServer --> fileHandlerService -- : Confirmation of upload
-    else Any Failure
+group DB Transaction
+    alt Success
+        fileHandlerService -> fileHandlerDb ++ : Get interface job IDs and file names for today from interface files table
+        fileHandlerDb --> fileHandlerService -- : Records returned
+        alt Duplicate Fines Interface Job ID supplied
+            fileHandlerService --> cardRequestQueue : Exit Process
+        else Non Duplicate
+            fileHandlerService -> fileHandlerService : Generate new file name based on sequence
+            fileHandlerService -> fileHandlerDb ++ : Create new SOURCE_JSON interface file record
+            fileHandlerDb --> fileHandlerService -- : Confirmation of creation in DB
+            fileHandlerService -> fileHandlerService : Transform SOURCE_JSON to TRANSFORMED file (Allpay Out file)
+            fileHandlerService -> fileHandlerDb ++ : Create new TRANSFORMED file interface file record
+            fileHandlerDb --> fileHandlerService -- : Confirmation of creation in DB
+            fileHandlerService -> fileHandlingBlobStorage ++ : Upload SOURCE_JSON and TRANSFORMED file to opal blob store
+            fileHandlingBlobStorage --> fileHandlerService -- : Confirmation of upload
+            fileHandlerService -> pdplQueue ++ : Log PDPL for the upload event to BAIS
+            pdplQueue --> fileHandlerService -- : Confirmation of logging to PDPL queue
+            fileHandlerService -> baisSftpServer ++ : Upload Allpay Out file to BAIS
+            baisSftpServer --> fileHandlerService -- : Confirmation of upload
+            fileHandlerService --> fileHandlerService : Commit transaction
+        end
+    else Failure
         fileHandlerService -> fileHandlerService : Rollback database and blob store to clean slate
         fileHandlerService --> cardRequestQueue : Exit Process
     end
