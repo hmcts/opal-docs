@@ -1,0 +1,20 @@
+@startuml
+title Get Document Instance
+actor "Opal User" as user
+participant "Get Document Instance" as finesService <<Fines Service API>> #LightSkyBlue
+database "Opal Fines Database" as finesDb #LightGreen
+queue "pdpl-logging-queue" as pdplQueue <<Logging Service Queue>> #lightgreen
+
+user -> finesService ++ : Request to get document instance
+finesService -> finesService : Checks if feature flag for this API is enabled
+finesService -> finesDb ++ : Get associated Document instance
+finesDb --> finesService -- : Return associated Document Instance record
+alt Document Instance found
+    finesService --> pdplQueue ++ : Log document instance consultation
+    pdplQueue --> finesService -- : Confirmation of message sent
+
+    finesService -> user : Return success response with document instance details
+else Document Instance not found
+    finesService -> user : Return error response indicating the document instance could not be located
+end
+@enduml

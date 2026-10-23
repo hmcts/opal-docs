@@ -1,0 +1,25 @@
+@startuml
+title Add Document Instance
+actor "Opal User" as user
+participant "Add document instance" as finesService <<Fines Service API>> #LightSkyBlue
+database "Opal Fines Database" as finesDb #LightGreen
+
+queue "document-instance-generation-queue" as documentInstanceGenerationQueue <<Fines Service Queue>> #lightgreen
+'database "Documents Blob Storage Container" as documentsContainer #LightGreen
+
+user -> finesService ++ : Request to add document instance
+finesService -> finesService : Checks if feature flag for this API is enabled
+finesService -> finesDb ++ : Get associated Document record
+finesDb --> finesService -- : Return associated Document record
+finesService -> finesService : Checks if provided Associated Record Type is valid for the Document Type
+
+alt Associated Record Type is invalid for the Document Type
+finesService -> user : Return error response indicating invalid Associated Record Type and exit process
+end
+
+finesService -> finesDb ++ : Create Document Instance record (JPA)
+finesDb --> finesService -- : Return Document Instance record
+finesService -> documentInstanceGenerationQueue ++ : Add document instance id to generation queue
+documentInstanceGenerationQueue --> finesService -- : Confirmation of message sent
+finesService -> user : Return success response with document instance id
+@enduml

@@ -1,0 +1,34 @@
+@startuml
+title Document Instance Generation Queue Subscriber
+queue "document-instance-generation-queue" as documentInstanceGenerationQueue <<Fines Service Queue>> #lightgreen
+participant "Document Payload Generation Service" as finesService <<Fines Service>> #LightSkyBlue
+participant "Document Elements Mapping Service" as finesMappingService <<Fines Service>> #LightSkyBlue
+database "Opal Fines Database" as finesDb #LightGreen
+database "Documents Blob Storage Container" as documentsContainer #LightGreen
+queue "document-instance-rendering-queue" as documentInstanceRenderingQueue <<Fines Service Queue>> #lightgreen
+documentInstanceGenerationQueue -> finesService ++ : Document instance id from generation queue
+finesService -> finesDb ++ : Get associated Document Instance record
+finesDb --> finesService -- : Return associated Document Instance record
+finesService -> finesDb ++ : Get associated Document record
+finesDb --> finesService -- : Return associated Document record
+
+finesService --> finesMappingService ++ : Request to get get and map document elements for the associated document
+finesMappingService --> finesDb ++ : Get associated header (based on associated document instance business unit)
+finesDb --> finesMappingService -- : Return associated header record
+
+finesMappingService -> finesMappingService : Create Query for the associated document elements from the document
+finesMappingService -> finesDb ++ : Run query to get associated document elements
+finesDb --> finesMappingService -- : Return associated document elements
+
+finesMappingService -> finesMappingService : Merge the document header, document parameters and document elements into a single JSON object
+finesMappingService --> finesService -- : Return mapped document elements JSON object
+finesService -> documentsContainer ++ : Add document instance content to blob storage
+documentsContainer --> finesService -- : Confirmation of storage
+finesService -> finesService : Calculate PDPL data log requirements
+
+finesService -> finesDb ++ : Update document instance record with blob storage location, update status to PAYLOAD_GENERATED and set the pdpl field ot be the correct pdpl json
+finesDb --> finesService -- : Confirmation of document instance record update
+finesService -> documentInstanceRenderingQueue ++ : Add document instance id to rendering queue
+documentInstanceRenderingQueue --> finesService -- : Confirmation of message sent
+finesService -> documentInstanceGenerationQueue -- : Acknowledge message from generation queue
+@enduml
