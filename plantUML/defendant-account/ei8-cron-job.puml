@@ -1,0 +1,50 @@
+@startuml
+title "Fines - Cron Job for EI8 ANT File Generation"
+participant "Kubernetes CronJob" as cronjob <<External System>> #LightCoral
+participant "ANT File Generation Service" as antFileGenerationService <<Fines Service>> #LightSkyBlue
+database "Fines Database" as finesDb <<DB>> #LightGreen
+queue "ANT File Queue" as antFileQueue <<Queue>> #lightgreen
+
+cronjob -> antFileGenerationService ++ : Trigger process
+group DB Transaction
+    antFileGenerationService -> finesDb ++ : Call Stored Procedure
+    alt Success
+        finesDb --> antFileGenerationService : Return JSON list of requests to be processed and associated interface job IDs
+        antFileGenerationService --> antFileGenerationService : Commit
+    else Failure
+        finesDb --> antFileGenerationService -- : Throws DB exception
+        antFileGenerationService --> cronjob : Rollback and exit process
+    end
+end
+alt Empty JSON List
+    antFileGenerationService --> cronjob : Exit process
+else Non Empty JSON list from Stored Procedure
+    loop For Each Business Unit's APRs
+        antFileGenerationService -> antFileQueue ++ : Send JSON to the queue for processing on File Handler Service
+        alt Success in sending to queue
+            antFileQueue --> antFileGenerationService -- : Confirmation of sending to queue
+            group DB Transaction
+                alt Success
+                    antFileGenerationService -> finesDb ++ : Update associated interface job record setting the status to COMPLETED and completed_datetime
+                    finesDb --> antFileGenerationService -- : Confirmation of update
+                    antFileGenerationService --> antFileGenerationService : Commit
+                else Failure
+                    antFileGenerationService --> cronjob : Rollback and exit process
+                end
+            end
+        else Failure in sending to queue
+            antFileQueue --> antFileGenerationService : Queue send error
+            group DB Transaction
+                alt Success
+                    antFileGenerationService -> finesDb ++ : Update associated interface job record setting the status to FAILED
+                    finesDb --> antFileGenerationService -- : Confirmation of update
+                    antFileGenerationService --> antFileGenerationService : Commit
+                else Failure
+                    antFileGenerationService --> cronjob : Rollback and exit process
+                end
+            end
+        end
+    end
+end
+antFileGenerationService --> cronjob -- : Exit process
+@enduml
