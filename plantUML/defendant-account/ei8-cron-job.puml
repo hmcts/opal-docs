@@ -9,7 +9,7 @@ cronjob -> antFileGenerationService ++ : Trigger process
 group DB Transaction
     antFileGenerationService -> finesDb ++ : Call Stored Procedure
     alt Success
-        finesDb --> antFileGenerationService : Return JSON list of requests to be processed and associated interface job IDs
+        finesDb --> antFileGenerationService : Return JSON list of APRs to be processed and associated interface job IDs
         antFileGenerationService --> antFileGenerationService : Commit
     else Failure
         finesDb --> antFileGenerationService -- : Throws DB exception
