@@ -1,0 +1,20 @@
+@startuml
+Title: Auto Enforcement Configuration - Delete Enforcement Path Set
+actor User
+participant "Auto Enforcement Configuration\n(Enforcement paths tab)" as autoEnforcementConfigurationUI <<UI Page>> #lightskyblue
+participant "Delete Enforcement Path Set" as deleteEnforcementPathSetUI <<UI Page>> #lightskyblue
+participant "Delete Enforcement Path Set" as deleteEnforcementPathSetService <<Fines Service>> #lightgreen
+database "Fines Database" as db #lightgreen
+
+User -> autoEnforcementConfigurationUI ++ : Click delete enforcement path set
+autoEnforcementConfigurationUI -> deleteEnforcementPathSetUI ++ : Render delete enforcement path set page
+deleteEnforcementPathSetUI --> User -- : Display delete confirmation
+User -> deleteEnforcementPathSetUI ++ : Confirm delete
+deleteEnforcementPathSetUI -> deleteEnforcementPathSetService ++: Delete enforcement path set
+deleteEnforcementPathSetService -> db ++ : Delete enforcement path set (JPA)
+db --> deleteEnforcementPathSetService -- : Confirmation of deletion
+deleteEnforcementPathSetService --> deleteEnforcementPathSetUI -- : Confirmation of deletion (JSON)
+deleteEnforcementPathSetUI --> autoEnforcementConfigurationUI -- : Navigate to enforcement paths tab
+autoEnforcementConfigurationUI --> User -- : Display deletion confirmation
+
+@enduml
