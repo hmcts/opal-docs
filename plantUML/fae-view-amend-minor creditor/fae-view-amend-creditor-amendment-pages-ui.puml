@@ -3,7 +3,7 @@ title Amend Creditor Details Page - Resolver and Cache Usage
 
 actor User
 participant "Route Resolver\n(/fines/account/minor-creditor/:accountId/amend)" as Resolver
-participant "getMinorCreditorAccountParty API" as API
+participant "getMinorCreditorAccount API" as API
 database "In-Memory Cache" as Cache
 database "opal-fines-service" as Backend
 participant "Amendment Page\n(Amend Creditor Details Page)" as Page
@@ -11,12 +11,12 @@ participant "Amendment Page\n(Amend Creditor Details Page)" as Page
 User -> Resolver : Navigates to /fines/account/minor-creditor/:accountId/amend
 
 alt Response found in cache
-    Resolver -> API : Call getMinorCreditorAccountParty
+    Resolver -> API : Call getMinorCreditorAccount
     API <-> Cache : Fetch cached data
     API -> Resolver : Return cached data
 else No cache or invalidated
-    Resolver -> API : Call getMinorCreditorAccountParty
-    API <-> Backend : Call  /opal-fines-service/minor-creditor-accounts/{id}/minor-creditor-account-parties/{id} 
+    Resolver -> API : Call getMinorCreditorAccount
+    API <-> Backend : Call  /opal-fines-service/minor-creditor-accounts/{id}
     API -> Cache : Store response in memory
     API -> Resolver : Return data
 end
