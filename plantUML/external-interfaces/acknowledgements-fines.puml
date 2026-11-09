@@ -1,0 +1,19 @@
+@startuml
+title Acknowledgements - Fines Process
+actor "User" as user
+participant "Publish Draft Account" as publishDraftAccountsPage <<UI Page>> #lightskyblue
+participant "Opal Fines Service" as finesService <<Fines Service>> #LightSkyBlue
+queue "Publish Draft Account Queue" as publishDraftAccountQueue <<Queue>> #lightgreen
+database "Fines DB" as finesDb #lightgreen
+
+publishDraftAccountsPage -> finesService ++ : Get draft accounts that have not been ingested today
+finesService --> publishDraftAccountsPage -- : Return draft accounts (will be grouped by BU front end)
+user -> publishDraftAccountsPage ++ : Select BU(s) to publish
+publishDraftAccountsPage -> finesService ++ : PATCH /draft-accounts to publish accounts
+finesService -> publishDraftAccountQueue ++ : Push DTOs for publishing
+publishDraftAccountQueue --> finesService -- : Confirmation of pushing to queue
+finesService -> finesDb ++ : Update draft account status to be PENDING_PUBLISHING
+finesDb --> finesService -- : Confirmation of update
+finesService --> publishDraftAccountsPage -- : Confirmation of publishing
+publishDraftAccountsPage --> user -- : Display success message
+@enduml
