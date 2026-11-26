@@ -1,0 +1,29 @@
+@startuml
+title View and amend Respondent details
+actor "User" as user
+participant "Respondent tab /\nChange Respondent details\n<i>UI</i>" as page <<UI Page>> #lightskyblue
+participant "Get Respondent Account Party\nGET /respondent-accounts/{respondentAccountId}\n/respondent-account-parties/{respondentAccountPartyId}" as read <<RM API>> #lightgreen
+participant "Replace Respondent Account Party\nPUT /respondent-accounts/{respondentAccountId}\n/respondent-account-parties/{respondentAccountPartyId}" as amend <<RM API>> #lightgreen
+database "Maintenance Database" as db #Yellow
+user -> page ++: Open Respondent tab
+page -> read ++: Get Respondent Account Party\nPath: respondentAccountId; respondentAccountPartyId
+read -> db ++: Retrieve Respondent details for respondentAccountId\nand respondentAccountPartyId (respondent_account_party_id)
+db --> read --: Respondent Account Party and account version
+read --> page --: Respondent Account Party and account version
+page --> user --: Display Respondent details
+user -> page ++: Select Change, edit details and save
+page -> amend ++: Replace Respondent Account Party\nrespondentAccountId; respondentAccountPartyId\nBody: complete writable Respondent Account Party\nHeader: If-Match
+group One database transaction
+amend -> amend: Check account version
+amend -> db ++: Capture values for audit\np_audit_initialise
+db --> amend --: Audit started
+amend -> db ++: Apply Respondent changes
+db --> amend --: Details updated
+amend -> db ++: Complete amendment audit\np_audit_finalise; update account version
+db --> amend --: Amendments recorded
+amend -> db ++: Commit
+db --> amend --: Changes committed
+end
+amend --> page --: Saved Respondent Account Party; updated account version
+page --> user --: Confirm saved; refresh affected account views
+@enduml

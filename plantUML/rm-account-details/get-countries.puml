@@ -1,0 +1,13 @@
+@startuml
+title Get Countries — reuse
+actor "User" as user
+participant "Address form\n<i>UI</i>" as page <<UI Page>> #lightskyblue
+participant "Get Countries\nGET /countries" as api <<RM API>> #lightgreen
+database "Maintenance Database" as db #Yellow
+user -> page ++: Open an address form
+page -> api ++: Get Countries\nQuery: active=true
+api -> db ++: Retrieve active countries
+db --> api --: Country list
+api --> page --: Country list
+page --> user --: Display country selector with United Kingdom first
+@enduml

@@ -1,0 +1,13 @@
+@startuml
+title Add account note
+actor "User" as user
+participant "Add account note\n<i>UI</i>" as page <<UI Page>> #lightskyblue
+participant "Add Account Note\nPOST /notes" as api <<RM API>> #lightgreen
+database "Maintenance Database" as db #Yellow
+user -> page ++: Save note
+page -> api ++: Add Account Note\nBody: account record type and ID; note type NT; note text
+api -> db ++: Save note against the account
+db --> api --: Saved Account Note
+api --> page --: Saved Account Note
+page --> user --: Confirm saved; return to At a Glance
+@enduml

@@ -1,0 +1,29 @@
+@startuml
+title View and amend Minor Creditor details
+actor "User" as user
+participant "Creditor tab /\nChange Minor Creditor details\n<i>UI</i>" as page <<UI Page>> #lightskyblue
+participant "Get Minor Creditor Account\nGET /minor-creditor-accounts/{creditorAccountId}" as read <<RM API>> #lightgreen
+participant "Update Minor Creditor Account\nPATCH /minor-creditor-accounts/{creditorAccountId}" as amend <<RM API>> #lightgreen
+database "Maintenance Database" as db #Yellow
+user -> page ++: Open Creditor tab
+page -> read ++: Get Minor Creditor Account\nPath: creditorAccountId
+read -> db ++: Retrieve Minor Creditor details and partyId (party_id)\nfor creditorAccountId
+db --> read --: Minor Creditor Account; partyId; account version
+read --> page --: Minor Creditor Account; partyId; account version
+page --> user --: Display Minor Creditor details
+user -> page ++: Select Change, edit details and save
+page -> amend ++: Update Minor Creditor Account\ncreditorAccountId\nBody: minorCreditorDetails; partyId\nHeader: If-Match
+group One database transaction
+amend -> amend: Check account version
+amend -> db ++: Capture values for audit\np_audit_initialise
+db --> amend --: Audit started
+amend -> db ++: Apply Minor Creditor changes
+db --> amend --: Details updated
+amend -> db ++: Complete amendment audit\np_audit_finalise; update account version
+db --> amend --: Amendments recorded
+amend -> db ++: Commit
+db --> amend --: Changes committed
+end
+amend --> page --: Saved minorCreditorDetails; updated account version
+page --> user --: Confirm saved; refresh affected account views
+@enduml

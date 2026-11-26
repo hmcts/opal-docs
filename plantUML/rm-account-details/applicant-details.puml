@@ -1,0 +1,29 @@
+@startuml
+title View and amend Applicant details
+actor "User" as user
+participant "Applicant tab /\nChange Applicant details\n<i>UI</i>" as page <<UI Page>> #lightskyblue
+participant "Get Applicant Account\nGET /applicant-accounts/{applicantAccountId}" as read <<RM API>> #lightgreen
+participant "Update Applicant Account\nPATCH /applicant-accounts/{applicantAccountId}" as amend <<RM API>> #lightgreen
+database "Maintenance Database" as db #Yellow
+user -> page ++: Open Applicant tab
+page -> read ++: Get Applicant Account\nPath: applicantAccountId; Query: respondentAccountId
+read -> db ++: Retrieve Applicant details and applicantAccountPartyId\n(respondent_account_party_id)\nfor applicantAccountId and respondentAccountId
+db --> read --: Applicant Account and account version\napplicantAccountPartyId (respondent_account_party_id)\nrespondentAccountId; partyId (party_id)
+read --> page --: Applicant Account and account version\napplicantAccountPartyId; respondentAccountId; partyId
+page --> user --: Display Applicant details
+user -> page ++: Select Change, edit details and save
+page -> amend ++: Update Applicant Account\napplicantAccountId\nBody: applicantDetails; respondentAccountId\napplicantAccountPartyId; partyId\nHeader: If-Match
+group One database transaction
+amend -> amend: Check account version
+amend -> db ++: Capture values for audit\np_audit_initialise
+db --> amend --: Audit started
+amend -> db ++: Apply Applicant changes
+db --> amend --: Details updated
+amend -> db ++: Complete amendment audit\np_audit_finalise; update account version
+db --> amend --: Amendments recorded
+amend -> db ++: Commit
+db --> amend --: Changes committed
+end
+amend --> page --: Saved applicantDetails; updated account version
+page --> user --: Confirm saved; refresh affected account views
+@enduml
