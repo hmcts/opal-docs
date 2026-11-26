@@ -1,0 +1,22 @@
+@startuml
+title Change case type, comment or Central Authority
+actor "User" as user
+participant "Change case type / Add or change comment /\nChange Central Authority\n<i>UI</i>" as page <<UI Page>> #lightskyblue
+participant "Update Respondent Account\nPATCH /respondent-accounts/{respondentAccountId}" as api <<RM API>> #lightgreen
+database "Maintenance Database" as db #Yellow
+user -> page ++: Save case type, comment or Central Authority changes
+page -> api ++: Update Respondent Account\nPath: respondentAccountId; Header: If-Match\nBody: one group — caseType, accountComment or authority
+group One database transaction
+api -> api: Check account version
+api -> db ++: Capture values for audit\np_audit_initialise
+db --> api --: Audit started
+api -> db ++: Apply changes from the selected screen
+db --> api --: Account updated
+api -> db ++: Complete amendment audit\np_audit_finalise; update account version
+db --> api --: Amendments recorded
+api -> db ++: Commit
+db --> api --: Changes committed
+end
+api --> page --: Saved amendment group; updated account version
+page --> user --: Confirm saved; refresh affected account views
+@enduml

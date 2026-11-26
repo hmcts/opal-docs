@@ -1,0 +1,13 @@
+@startuml
+title View Central Authority details
+actor "User" as user
+participant "Authority tab\n<i>UI</i>" as page <<UI Page>> #lightskyblue
+participant "Get Authority Details\nGET /respondent-accounts/{respondentAccountId}/authority" as api <<RM API>> #lightgreen
+database "Maintenance Database" as db #Yellow
+user -> page ++: Open Authority tab
+page -> api ++: Get Authority Details\nPath: respondentAccountId
+api -> db ++: Retrieve Central Authority details and references\nfor respondentAccountId
+db --> api --: Central Authority details and references, if recorded
+api --> page --: Central Authority details and references, if recorded
+page --> user --: Display details; show dashes for missing values
+@enduml

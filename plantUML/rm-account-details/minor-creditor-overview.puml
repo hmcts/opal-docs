@@ -1,0 +1,18 @@
+@startuml
+title View Minor Creditor account
+actor "User" as user
+participant "Minor Creditor Account Details\n<i>UI</i>" as page <<UI Page>> #lightskyblue
+participant "Get Minor Creditor Account Header Summary\nGET /minor-creditor-accounts/{creditorAccountId}/header-summary" as headerApi <<RM API>> #lightgreen
+participant "Get Minor Creditor Account At a Glance\nGET /minor-creditor-accounts/{creditorAccountId}/at-a-glance" as atAGlance <<RM API>> #lightgreen
+database "Maintenance Database" as db #Yellow
+user -> page ++: Open account
+page -> headerApi ++: Get Minor Creditor Account Header Summary\nPath: creditorAccountId
+headerApi -> db ++: Retrieve Minor Creditor Header Summary\nfor creditorAccountId
+db --> headerApi --: Minor Creditor Header Summary
+headerApi --> page --: Minor Creditor Header Summary
+page -> atAGlance ++: Get Minor Creditor Account At a Glance\nPath: creditorAccountId
+atAGlance -> db ++: Retrieve Minor Creditor At a Glance summary\nfor creditorAccountId
+db --> atAGlance --: Minor Creditor At a Glance summary
+atAGlance --> page --: Minor Creditor At a Glance summary
+page --> user --: Display header and At a Glance
+@enduml

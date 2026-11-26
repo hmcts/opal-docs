@@ -1,0 +1,18 @@
+@startuml
+title View Major Creditor account
+actor "User" as user
+participant "Major Creditor Account Details\n<i>UI</i>" as page <<UI Page>> #lightskyblue
+participant "Get Major Creditor Account Header Summary\nGET /major-creditor-accounts/{creditorAccountId}/header-summary" as headerApi <<RM API>> #lightgreen
+participant "Get Major Creditor Account At a Glance\nGET /major-creditor-accounts/{creditorAccountId}/at-a-glance" as atAGlance <<RM API>> #lightgreen
+database "Maintenance Database" as db #Yellow
+user -> page ++: Open account
+page -> headerApi ++: Get Major Creditor Account Header Summary\nPath: creditorAccountId
+headerApi -> db ++: Retrieve Major Creditor Header Summary\nfor creditorAccountId
+db --> headerApi --: Major Creditor Header Summary
+headerApi --> page --: Major Creditor Header Summary
+page -> atAGlance ++: Get Major Creditor Account At a Glance\nPath: creditorAccountId
+atAGlance -> db ++: Retrieve Major Creditor At a Glance summary\nfor creditorAccountId
+db --> atAGlance --: Major Creditor At a Glance summary
+atAGlance --> page --: Major Creditor At a Glance summary
+page --> user --: Display header and At a Glance
+@enduml

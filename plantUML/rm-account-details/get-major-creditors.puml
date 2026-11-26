@@ -1,0 +1,13 @@
+@startuml
+title Get Central Authorities — reuse
+actor "User" as user
+participant "Change Central Authority\n<i>UI</i>" as page <<UI Page>> #lightskyblue
+participant "Get Major Creditors\nGET /major-creditors" as api <<RM API>> #lightgreen
+database "Maintenance Database" as db #Yellow
+user -> page ++: Open Change Central Authority
+page -> api ++: Get Major Creditors\nQuery: business_unit_id; central_authority=true; active=true
+api -> db ++: Retrieve active Central Authorities\nfor business_unit_id (central_authority = true)
+db --> api --: Central Authority list
+api --> page --: Central Authority list
+page --> user --: Display Central Authorities for selection
+@enduml

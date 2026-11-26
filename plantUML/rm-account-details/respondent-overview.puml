@@ -1,0 +1,18 @@
+@startuml
+title View Respondent account
+actor "User" as user
+participant "Respondent Account Details\n<i>UI</i>" as page <<UI Page>> #lightskyblue
+participant "Get Respondent Account Header Summary\nGET /respondent-accounts/{respondentAccountId}/header-summary" as headerApi <<RM API>> #lightgreen
+participant "Get Respondent Account At a Glance\nGET /respondent-accounts/{respondentAccountId}/at-a-glance" as atAGlance <<RM API>> #lightgreen
+database "Maintenance Database" as db #Yellow
+user -> page ++: Open account
+page -> headerApi ++: Get Respondent Account Header Summary\nPath: respondentAccountId
+headerApi -> db ++: Retrieve Respondent Header Summary\nand respondentAccountPartyId (respondent_account_party_id)\nfor respondentAccountId
+db --> headerApi --: Respondent Header Summary\nrespondentAccountPartyId (respondent_account_party_id)
+headerApi --> page --: Respondent Header Summary\nrespondentAccountPartyId
+page -> atAGlance ++: Get Respondent Account At a Glance\nPath: respondentAccountId
+atAGlance -> db ++: Retrieve Respondent At a Glance summary\nfor respondentAccountId
+db --> atAGlance --: Respondent At a Glance summary
+atAGlance --> page --: Respondent At a Glance summary
+page --> user --: Display header and At a Glance
+@enduml
